@@ -187,23 +187,21 @@
 <script>
     AOS.init();
 
-    // 1. VARIABLES GLOBALES
-    const song = document.getElementById('weddingSong');
-    const musicIcon = document.getElementById('music-icon');
-    const musicBtn = document.getElementById('musicToggleBtn');
-    const abrirBtn = document.getElementById('btn-abrir');
+    // 1. Obtener los elementos una sola vez al cargar la página
+    const musica = document.getElementById('weddingSong');
+    const btonMusica = document.getElementById('musicToggleBtn');
+    const iconoMusica = document.getElementById('music-icon');
+    const btonAbrir = document.getElementById('btn-abrir');
 
-    // 2. FUNCIÓN DE APERTURA (RE-AJUSTADA PARA PLAY INMEDIATO)
-    abrirBtn.addEventListener('click', () => {
-        // ACTIVAR AUDIO INMEDIATAMENTE (Al primer toque)
-        song.play().then(() => {
-            musicIcon.innerText = "ON";
-            musicBtn.classList.add('animate-pulse');
-        }).catch(error => {
-            console.log("Error al reproducir: ", error);
-        });
+    // 2. Lógica para abrir el sobre y arrancar la música
+    btonAbrir.addEventListener('click', function() {
+        // Reproducir
+        musica.play().then(() => {
+            iconoMusica.innerText = "ON";
+            btonMusica.classList.add('animate-pulse');
+        }).catch(e => console.log("Error inicial:", e));
 
-        // INICIAR ANIMACIÓN VISUAL
+        // Animación visual
         const sobre = document.getElementById('pantalla-sobre');
         sobre.style.opacity = '0';
         sobre.style.transform = 'scale(1.5)';
@@ -216,54 +214,56 @@
         }, 800);
     });
 
-    // 3. FUNCIÓN TOGGLE PARA PAUSAR/REPRODUCIR DESPUÉS
-    musicBtn.addEventListener('click', () => {
-        if (song.paused) {
-            song.play();
-            musicIcon.innerText = "ON";
-            musicBtn.classList.add('animate-pulse');
+    // 3. Lógica del botón ON/OFF (RE-CORREGIDA)
+    // Usamos .onclick para asegurar que solo haya UNA orden asignada al botón
+    btonMusica.onclick = function() {
+        if (musica.paused) {
+            musica.play();
+            iconoMusica.innerText = "ON";
+            btonMusica.classList.add('animate-pulse');
+            console.log("Música iniciada");
         } else {
-            song.pause();
-            musicIcon.innerText = "OFF";
-            musicBtn.classList.remove('animate-pulse');
+            musica.pause();
+            iconoMusica.innerText = "OFF";
+            btonMusica.classList.remove('animate-pulse');
+            console.log("Música pausada");
         }
-    });
+    };
 
-    // 4. CRONÓMETRO
+    // 4. Función del Reloj
     function iniciarReloj() {
         const weddingDate = new Date("Sept 12, 2026 17:30:00").getTime();
-        const x = setInterval(() => {
+        setInterval(() => {
             const now = new Date().getTime();
             const diff = weddingDate - now;
-            document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
-            document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            document.getElementById('minutes').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('seconds').innerText = Math.floor((diff % (1000 * 60)) / 1000);
-            if (diff < 0) { clearInterval(x); document.getElementById('countdown').innerHTML = "¡HOY ES EL DÍA!"; }
+            if (diff > 0) {
+                document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('minutes').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('seconds').innerText = Math.floor((diff % (1000 * 60)) / 1000);
+            }
         }, 1000);
     }
 
-    // 5. INVITADOS DINÁMICOS
+    // 5. Lógica de Invitados
     const listaInvitados = {
         "fam-01": { nombre: "Familia García López", pases: 4 },
         "fam-02": { nombre: "Lic. Roberto Pérez", pases: 2 },
         "ari-martin": { nombre: "Papás de la Novia", pases: 2 }
     };
 
-    window.onload = () => {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const guest = listaInvitados[id] || { nombre: "Familia y Amigos", pases: 5 };
-        
-        document.getElementById('form-nombre').value = guest.nombre;
-        const select = document.getElementById('form-pases');
-        for(let i=1; i<=guest.pases; i++) {
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.innerHTML = i + (i===1 ? " Lugar" : " Lugares");
-            select.appendChild(opt);
-        }
-    };
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const guest = listaInvitados[id] || { nombre: "Familia y Amigos", pases: 5 };
+    
+    document.getElementById('form-nombre').value = guest.nombre;
+    const select = document.getElementById('form-pases');
+    for(let i=1; i<=guest.pases; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = i + (i===1 ? " Lugar" : " Lugares");
+        select.appendChild(opt);
+    }
 
     function enviarRSVP() {
         const nombre = document.getElementById('form-nombre').value;
