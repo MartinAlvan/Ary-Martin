@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ariana & Martin - Nuestra Boda</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root { --oro: #c5a059; --negro: #0a0a0a; --crema: #fdfdfd; }
+        body, html { margin: 0; padding: 0; background-color: var(--negro); color: var(--crema); font-family: 'Montserrat', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+        h1, h2, h3 { font-family: 'Cinzel', serif; color: var(--oro); }
+        .script-font { font-family: 'Pinyon Script', cursive; color: var(--oro); }
+
+        /* Pantalla Sobre */
+        #pantalla-sobre { position: fixed; inset: 0; z-index: 100; background-color: var(--negro); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 1s ease; }
+        .sobre-img { width: 90%; max-width: 400px; cursor: pointer; transition: 0.5s; filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.3)); }
+        
+        /* Hero */
+        .hero { width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; text-align: center; padding-top: 60px; background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('img/FotoPrincipal.jpeg'); background-size: cover; background-position: center 20%; background-repeat: no-repeat; }
+
+        @media (min-width: 1024px) { 
+            .hero { background-size: 45% auto; background-color: #000; height: 90vh; } 
+            .hero h1 { font-size: 4.5rem; }
+        }
+
+        .flower-banner { width: 100%; height: 120px; background-image: url('img/BanerFlores.png'); background-size: cover; background-position: center; border-bottom: 2px solid var(--oro); }
+        .btn-mexicano { border: 1px solid var(--oro); color: var(--oro); padding: 12px 25px; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; transition: 0.4s; display: inline-block; background: transparent; cursor: pointer; text-align: center; }
+        .btn-mexicano:hover { background: var(--oro); color: var(--negro); }
+        
+        .section-img { width: 100%; max-height: 400px; object-fit: cover; border: 1px solid var(--oro); padding: 4px; }
+        .card-info { background: rgba(255,255,255,0.03); border: 1px solid rgba(197, 160, 89, 0.2); padding: 30px; }
+        
+        #controles-musica { position: fixed; bottom: 20px; left: 20px; z-index: 95; }
+        .countdown-item { background: rgba(197, 160, 89, 0.1); border: 1px solid var(--oro); padding: 10px; min-width: 70px; }
+    </style>
+</head>
+<body>
+
+    <!-- AUDIO: Asegúrate que el archivo sea musica.mp3 -->
+    <audio id="weddingSong" loop preload="auto">
+        <source src="musica.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 1. EL SOBRE -->
+    <div id="pantalla-sobre">
+        <img src="img/SobreCerrado.png" class="sobre-img" id="btn-abrir">
+        <p class="mt-8 tracking-[4px] text-xs uppercase opacity-50 animate-pulse text-white">Toca el sobre para entrar</p>
+    </div>
+
+    <!-- 2. CONTENIDO -->
+    <div id="main-content" class="hidden">
+        
+        <!-- BOTÓN MÚSICA SIN ONCLICK (Se controla solo por JS) -->
+        <div id="controles-musica">
+            <button id="musicToggleBtn" class="w-12 h-12 rounded-full border-2 border-[var(--oro)] flex items-center justify-center bg-black/80">
+                <span id="music-icon" class="text-[var(--oro)] font-bold text-[10px]">OFF</span>
+            </button>
+        </div>
+
+        <div class="flower-banner"></div>
+
+        <header class="hero">
+            <div data-aos="fade-down" data-aos-duration="1500">
+                <h1 class="text-5xl mb-2">Ariana & Martin</h1>
+                <p class="script-font text-3xl">Nuestra Boda</p>
+                <div class="w-16 h-[1px] bg-[var(--oro)] mx-auto my-6"></div>
+                <p class="uppercase tracking-[6px] text-sm">12 . Septiembre . 2026</p>
+            </div>
+        </header>
+
+        <!-- Cronómetro -->
+        <section class="py-12 bg-black text-center">
+            <h3 class="mb-6 tracking-widest text-sm">FALTAN SOLO...</h3>
+            <div id="countdown" class="flex justify-center gap-4 text-center">
+                <div class="countdown-item"><span id="days" class="text-2xl block font-bold text-[var(--oro)]">00</span><small>DÍAS</small></div>
+                <div class="countdown-item"><span id="hours" class="text-2xl block font-bold text-[var(--oro)]">00</span><small>HR</small></div>
+                <div class="countdown-item"><span id="minutes" class="text-2xl block font-bold text-[var(--oro)]">00</span><small>MIN</small></div>
+                <div class="countdown-item"><span id="seconds" class="text-2xl block font-bold text-[var(--oro)]">00</span><small>SEG</small></div>
+            </div>
+        </section>
+
+        <!-- Historia -->
+        <section class="py-20 px-6 max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+            <div data-aos="fade-right"><img src="img/FotoHistoria.jpeg" class="section-img"></div>
+            <div data-aos="fade-left">
+                <h2 class="text-3xl mb-6">Nuestra Historia</h2>
+                <p class="text-gray-300 font-light italic leading-relaxed">
+                    Compañeros de trabajo, amigos de café y cómplices de vida. Después de 8 años de novios y 7 compartiendo el mismo techo, nuestra familia nos dice la "Familia Muégano" porque donde está uno, está el otro. ¡Por fin daremos el gran paso!
+                </p>
+            </div>
+        </section>
+
+        <!-- Vestimenta -->
+        <section class="py-20 px-6 bg-[#080808]">
+            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+                <div class="order-2 md:order-1" data-aos="fade-right">
+                    <h2 class="text-3xl mb-6">Código de Vestimenta</h2>
+                    <p class="text-[var(--oro)] tracking-widest font-bold mb-4 text-sm uppercase">FORMAL - TOQUE MEXICANO</p>
+                    <p class="text-gray-300 text-sm mb-6 leading-relaxed">
+                        Queremos verlos elegantes. Pueden integrar detalles artesanales o colores vivos. <br><br>
+                        <strong class="text-white uppercase text-xs">Nota importante:</strong> Con el mayor de los respetos, pedimos a nuestras invitadas <strong>evitar el color blanco o crema</strong>, ya que ese tono está reservado exclusivamente para la novia. ¡Gracias por su comprensión!
+                    </p>
+                </div>
+                <div class="order-1 md:order-2" data-aos="fade-left"><img src="img/FotoVestimenta.jpeg" class="section-img"></div>
+            </div>
+        </section>
+
+        <!-- Niños -->
+        <section class="py-20 px-6">
+            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+                <div data-aos="fade-right"><img src="img/FotoNinos.jpeg" class="section-img"></div>
+                <div data-aos="fade-left">
+                    <h2 class="text-3xl mb-6">Sobre los Pequeños</h2>
+                    <p class="text-gray-300 text-sm leading-relaxed">
+                        Sus niños son bienvenidos, pero por su seguridad les pedimos especial atención: <br><br>
+                        1. El salón se encuentra en un <strong class="text-[var(--oro)]">segundo piso</strong>, es vital vigilarlos en las escaleras.<br>
+                        2. Durante el <strong>primer baile y pastel</strong>, agradeceremos que permanezcan con ustedes en sus lugares para evitar incidentes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ubicaciones -->
+        <section class="py-20 bg-[#0c0c0c] px-6 text-center">
+            <h2 class="text-3xl mb-12">¿Dónde y Cuándo?</h2>
+            <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                <div class="card-info" data-aos="zoom-in">
+                    <h3 class="text-xl mb-4">Ceremonia Religiosa</h3>
+                    <p class="text-sm text-gray-400 mb-6">17:30 hrs - [Nombre Iglesia]</p>
+                    <a href="LINK_MAPS" target="_blank" class="btn-mexicano w-full">📍 Cómo llegar</a>
+                </div>
+                <div class="card-info" data-aos="zoom-in" data-aos-delay="200">
+                    <h3 class="text-xl mb-4">Recepción</h3>
+                    <p class="text-sm text-gray-400 mb-6">20:00 hrs - [Nombre Salón]</p>
+                    <a href="LINK_MAPS" target="_blank" class="btn-mexicano w-full">📍 Cómo llegar</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Regalos -->
+        <section class="py-20 px-6">
+            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+                <div class="order-2 md:order-1" data-aos="fade-right">
+                    <h2 class="text-3xl mb-6">Regalos</h2>
+                    <p class="text-gray-300 italic mb-6">
+                        "El mejor regalo es su presencia, pero si gustan cooperar con el 'itacate' para nuestra luna de miel, cualquier detalle económico será bien recibido. ¡Se aceptan sobres con mucho cariño!"
+                    </p>
+                    <div class="p-4 border border-dashed border-[var(--oro)] text-[10px] uppercase tracking-widest opacity-60 text-center">
+                        Contaremos con cofre para sobres en el salón
+                    </div>
+                </div>
+                <div class="order-1 md:order-2" data-aos="fade-left"><img src="img/FotoRegalos.jpeg" class="section-img"></div>
+            </div>
+        </section>
+
+        <!-- Confirmación -->
+        <section class="py-24 px-6 bg-[#080808] text-center">
+            <div class="max-w-md mx-auto card-info" data-aos="fade-up">
+                <h2 class="text-2xl mb-4">Confirmar Asistencia</h2>
+                <div class="text-left space-y-4">
+                    <div>
+                        <label class="text-[10px] text-[var(--oro)] block mb-1">INVITADO</label>
+                        <input type="text" id="form-nombre" readonly class="w-full bg-transparent border-b border-[var(--oro)] p-2 text-sm outline-none opacity-70 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-[var(--oro)] block mb-1">LUGARES RESERVADOS</label>
+                        <select id="form-pases" class="w-full bg-[#111] border-b border-[var(--oro)] p-2 text-sm outline-none text-white">
+                            <!-- Se llena dinámicamente -->
+                        </select>
+                    </div>
+                    <button onclick="enviarRSVP()" class="btn-mexicano w-full mt-6">Confirmar por WhatsApp</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="py-10 text-center opacity-30 text-[10px] tracking-[3px]">
+            ARIANA & MARTIN | 12.09.2026
+        </footer>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init();
+
+    // 1. VARIABLES GLOBALES
+    const song = document.getElementById('weddingSong');
+    const musicIcon = document.getElementById('music-icon');
+    const musicBtn = document.getElementById('musicToggleBtn');
+    const abrirBtn = document.getElementById('btn-abrir');
+
+    // 2. FUNCIÓN DE APERTURA (RE-AJUSTADA PARA PLAY INMEDIATO)
+    abrirBtn.addEventListener('click', () => {
+        // ACTIVAR AUDIO INMEDIATAMENTE (Al primer toque)
+        song.play().then(() => {
+            musicIcon.innerText = "ON";
+            musicBtn.classList.add('animate-pulse');
+        }).catch(error => {
+            console.log("Error al reproducir: ", error);
+        });
+
+        // INICIAR ANIMACIÓN VISUAL
+        const sobre = document.getElementById('pantalla-sobre');
+        sobre.style.opacity = '0';
+        sobre.style.transform = 'scale(1.5)';
+        
+        setTimeout(() => {
+            sobre.classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            AOS.refresh();
+            iniciarReloj();
+        }, 800);
+    });
+
+    // 3. FUNCIÓN TOGGLE PARA PAUSAR/REPRODUCIR DESPUÉS
+    musicBtn.addEventListener('click', () => {
+        if (song.paused) {
+            song.play();
+            musicIcon.innerText = "ON";
+            musicBtn.classList.add('animate-pulse');
+        } else {
+            song.pause();
+            musicIcon.innerText = "OFF";
+            musicBtn.classList.remove('animate-pulse');
+        }
+    });
+
+    // 4. CRONÓMETRO
+    function iniciarReloj() {
+        const weddingDate = new Date("Sept 12, 2026 17:30:00").getTime();
+        const x = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = weddingDate - now;
+            document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+            document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            document.getElementById('minutes').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            document.getElementById('seconds').innerText = Math.floor((diff % (1000 * 60)) / 1000);
+            if (diff < 0) { clearInterval(x); document.getElementById('countdown').innerHTML = "¡HOY ES EL DÍA!"; }
+        }, 1000);
+    }
+
+    // 5. INVITADOS DINÁMICOS
+    const listaInvitados = {
+        "fam-01": { nombre: "Familia García López", pases: 4 },
+        "fam-02": { nombre: "Lic. Roberto Pérez", pases: 2 },
+        "ari-martin": { nombre: "Papás de la Novia", pases: 2 }
+    };
+
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const guest = listaInvitados[id] || { nombre: "Familia y Amigos", pases: 5 };
+        
+        document.getElementById('form-nombre').value = guest.nombre;
+        const select = document.getElementById('form-pases');
+        for(let i=1; i<=guest.pases; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = i + (i===1 ? " Lugar" : " Lugares");
+            select.appendChild(opt);
+        }
+    };
+
+    function enviarRSVP() {
+        const nombre = document.getElementById('form-nombre').value;
+        const pases = document.getElementById('form-pases').value;
+        const msg = encodeURIComponent(`¡Hola Ariana y Martin! Confirmo mi asistencia para ${nombre}. Reservamos ${pases} lugar(es). ¡Gracias!`);
+        window.open(`https://wa.me/521234567890?text=${msg}`); 
+    }
+</script>
+</body>
+</html>
