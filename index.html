@@ -33,8 +33,19 @@
         
         .section-img { width: 100%; max-height: 400px; object-fit: cover; border: 1px solid var(--oro); padding: 4px; }
         .card-info { background: rgba(255,255,255,0.03); border: 1px solid rgba(197, 160, 89, 0.2); padding: 30px; }
+
+        #controles-musica {
+            position: fixed;
+            bottom: 30px; /* Un poco más arriba para que no estorbe el scroll del cel */
+            left: 20px;
+            z-index: 10000 !important; /* Capa suprema */
+        }
         
-        #controles-musica { position: fixed; bottom: 20px; left: 20px; z-index: 95; }
+        #musicToggleBtn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            display: flex !important;
+        }
         .countdown-item { background: rgba(197, 160, 89, 0.1); border: 1px solid var(--oro); padding: 10px; min-width: 70px; }
     </style>
 </head>
@@ -177,6 +188,13 @@
             </div>
         </section>
 
+        <!-- Botón de Calendario -->
+         <div class="mt-4">
+            <a href="#" id="btn-calendar" target="_blank" class="text-[10px] underline tracking-widest opacity-70 hover:opacity-100 transition-all">
+                🗓 AGENDAR EN MI GOOGLE CALENDAR
+            </a>
+        </div>
+
         <footer class="py-10 text-center opacity-30 text-[10px] tracking-[3px]">
             ARIANA & MARTIN | 12.09.2026
         </footer>
@@ -184,6 +202,7 @@
 
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> 
 <script>
     AOS.init();
 
@@ -269,8 +288,67 @@
         const nombre = document.getElementById('form-nombre').value;
         const pases = document.getElementById('form-pases').value;
         const msg = encodeURIComponent(`¡Hola Ariana y Martin! Confirmo mi asistencia para ${nombre}. Reservamos ${pases} lugar(es). ¡Gracias!`);
-        window.open(`https://wa.me/521234567890?text=${msg}`); 
+        window.open(`https://wa.me/5615273394?text=${msg}`); 
     }
+    // Función para generar QR al confirmar
+    function generarQR(nombre, pases) {
+    document.getElementById('seccion-formulario').innerHTML =
+        <div class="text-center p-6 bg-white rounded-lg shadow-xl" data-aos="zoom-in">
+            <h3 class="text-black font-bold mb-4">¡PASE PERSONALIZADO!</h3>
+            <div id="qrcode" class="flex justify-center mb-4"></div>
+            <p class="text-black text-[10px] uppercase font-bold">${nombre}</p>
+            <p class="text-black text-[10px]">${pases} LUGARES CONFIRMADOS</p>
+            <button onclick="window.print()" class="mt-4 bg-black text-white text-[9px] p-2 rounded">GUARDAR CAPTURA</button>
+        </div>;
+    // Crea el QR con la información necesaria para el salón
+    new QRCode(document.getElementById("qrcode"), {
+        text: `BODA-ARIMARTIN-${nombre}-${pases}`,
+        width: 150,
+        height: 150,
+        colorDark : "#000000",
+        colorLight : "#ffffff"
+    });
+    }
+
+    function enviarRSVP() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    const asistentes = document.getElementById('form-pases').value;
+    const nombre = document.getElementById('form-nombre').value;
+
+    // Bloquear botón para evitar doble clic
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "PROCESANDO...";
+
+    // Enviar a tu Google Apps Script (backend)
+    fetch('https://script.google.com/macros/s/AKfycbytn1uReVUpO1nl9cGb5eEkF-javjTfA8EIY2p6IUOJ3C_ru1hlnX8KvF3DLXQT3H4iFA/exec', {
+        method: 'POST',
+        mode: 'no-cors', // Importante para Google Scripts
+        body: JSON.stringify({id: id, asistentes: asistentes})
+    }).then(() => {
+        generarQR(nombre, asistentes);
+        localStorage.setItem('confirmado_' + id, asistentes); // Guardar en el navegador
+    });
+    }
+
+    // Configura los datos de tu boda aquí
+    function configurarCalendario() {
+    const titulo = encodeURIComponent("Boda Ariana & Martin 🇲🇽");
+    const detalles = encodeURIComponent("¡No faltes a nuestra Noche Mexicana Elegante! Recuerda traer tu código QR para el acceso.");
+    const ubicacion = encodeURIComponent("Pon aquí la dirección real del Salón, Ciudad, Estado");
+    
+    // Formato de fecha: YYYYMMDDTHHMMSSZ (En horario UTC)
+    // Para el 12 de Sept de 2026 a las 17:30 (México centro es UTC-6)
+    const inicio = "20260912T233000Z"; 
+    const fin = "20260913T080000Z";
+
+    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${inicio}/${fin}&details=${detalles}&location=${ubicacion}&sf=true&output=xml`;
+    
+    document.getElementById('btn-calendar').href = calendarUrl;
+    }
+
+// Llama a la función al cargar
+configurarCalendario();
 </script>
 </body>
 </html>

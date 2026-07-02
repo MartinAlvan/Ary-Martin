@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Acceso - Ariana & Martin</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0a0a0a; color: #fdfdfd; font-family: sans-serif; }
+        #reader { border: 2px solid #c5a059 !important; border-radius: 10px; overflow: hidden; }
+        .success-bg { background-color: #155724 !important; }
+        .error-bg { background-color: #721c24 !important; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="text-center mb-8">
+        <h1 class="text-[#c5a059] text-xl font-bold tracking-widest">CONTROL DE ACCESO</h1>
+        <p class="text-xs opacity-50">ARIANA & MARTIN | SEPT 2026</p>
+    </div>
+
+    <!-- Contenedor del Escáner -->
+    <div id="reader" class="w-full max-w-md"></div>
+
+    <!-- Resultado -->
+    <div id="result-container" class="mt-6 w-full max-w-md p-6 rounded-lg bg-[#111] border border-gray-800 hidden">
+        <h2 id="guest-name" class="text-2xl font-bold text-center mb-2"></h2>
+        <div class="flex justify-around mt-4">
+            <div class="text-center">
+                <span class="block text-[10px] opacity-50 uppercase">Pases</span>
+                <span id="guest-pases" class="text-3xl font-bold text-[#c5a059]"></span>
+            </div>
+            <div class="text-center">
+                <span class="block text-[10px] opacity-50 uppercase">Estado</span>
+                <span id="guest-status" class="text-sm font-bold block mt-2"></span>
+            </div>
+        </div>
+        <button onclick="resetScanner()" class="w-full mt-6 bg-[#c5a059] text-black font-bold py-3 rounded">SIGUIENTE INVITADO</button>
+    </div>
+
+    <!-- Sonidos de feedback (opcional) -->
+    <audio id="sound-success" src="https://assets.mixkit.co/active_storage/sfx/2218/2218-preview.mp3"></audio>
+
+    <script>
+        const html5QrCode = new Html5Qrcode("reader");
+        const resultContainer = document.getElementById('result-container');
+        const soundSuccess = document.getElementById('sound-success');
+
+        const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // El QR tiene formato: BODA-ARIMARTIN-Nombre-Pases
+            const data = decodedText.split('-');
+            
+            if (data[0] === "BODA" && data[1] === "ARIMARTIN") {
+                html5QrCode.stop(); // Pausar cámara
+                soundSuccess.play();
+                mostrarResultado(data[2], data[3], true);
+            } else {
+                alert("QR NO VÁLIDO PARA ESTA BODA");
+            }
+        }
+
+        function mostrarResultado(nombre, pases, esValido) {
+            document.getElementById('reader').classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+            
+            document.getElementById('guest-name').innerText = nombre;
+            document.getElementById('guest-pases').innerText = pases;
+            
+            const status = document.getElementById('guest-status');
+            if(esValido) {
+                status.innerText = "ACCESO PERMITIDO";
+                status.className = "text-green-500 font-bold";
+                document.body.classList.add('success-bg');
+            }
+        }
+
+        function resetScanner() {
+            document.body.classList.remove('success-bg');
+            resultContainer.classList.add('hidden');
+            document.getElementById('reader').classList.remove('hidden');
+            startScanner();
+        }
+
+        function startScanner() {
+            html5QrCode.start({ facingMode: "environment" }, qrConfig, onScanSuccess);
+        }
+
+        startScanner();
+    </script>
+</body>
+</html>
