@@ -35,17 +35,25 @@
         .card-info { background: rgba(255,255,255,0.03); border: 1px solid rgba(197, 160, 89, 0.2); padding: 30px; }
 
         #controles-musica {
-            position: fixed;
-            bottom: 30px; /* Un poco más arriba para que no estorbe el scroll del cel */
-            left: 20px;
-            z-index: 10000 !important; /* Capa suprema */
-        }
+    position: fixed;
+    bottom: 30px;
+    left: 20px;
+    z-index: 999999 !important; /* Capa máxima absoluta */
+}
+
+#musicToggleBtn {
+    cursor: pointer !important;
+    pointer-events: auto !important; /* Fuerza a que responda al clic */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Evitar que el sobre tape el botón cuando está cerrado */
+#pantalla-sobre {
+    z-index: 100000;
+}
         
-        #musicToggleBtn {
-            cursor: pointer !important;
-            pointer-events: auto !important;
-            display: flex !important;
-        }
         .countdown-item { background: rgba(197, 160, 89, 0.1); border: 1px solid var(--oro); padding: 10px; min-width: 70px; }
     </style>
 </head>
@@ -186,14 +194,15 @@
                     <button onclick="enviarRSVP()" class="btn-mexicano w-full mt-6">Confirmar por WhatsApp</button>
                 </div>
             </div>
-        </section>
-
-        <!-- Botón de Calendario -->
+            <!-- Botón de Calendario -->
          <div class="mt-4">
             <a href="#" id="btn-calendar" target="_blank" class="text-[10px] underline tracking-widest opacity-70 hover:opacity-100 transition-all">
                 🗓 AGENDAR EN MI GOOGLE CALENDAR
             </a>
         </div>
+        </section>
+
+        
 
         <footer class="py-10 text-center opacity-30 text-[10px] tracking-[3px]">
             ARIANA & MARTIN | 12.09.2026
@@ -285,11 +294,22 @@
     }
 
     function enviarRSVP() {
-        const nombre = document.getElementById('form-nombre').value;
-        const pases = document.getElementById('form-pases').value;
-        const msg = encodeURIComponent(`¡Hola Ariana y Martin! Confirmo mi asistencia para ${nombre}. Reservamos ${pases} lugar(es). ¡Gracias!`);
-        window.open(`https://wa.me/5615273394?text=${msg}`); 
-    }
+    const urlScript = "https://script.google.com/macros/s/AKfycbytn1uReVUpO1nl9cGb5eEkF-javjTfA8EIY2p6IUOJ3C_ru1hlnX8KvF3DLXQT3H4iFA/exec"; // <--- PEGA AQUÍ LA URL
+    const id = new URLSearchParams(window.location.search).get('id');
+    const pases = document.getElementById('form-pases').value;
+    
+    // Mostramos QR y bloqueamos de inmediato para efecto visual
+    const nombreInvitado = document.getElementById('form-nombre').value;
+    generarQR(nombreInvitado, pases);
+
+    // Enviamos los datos al Excel en segundo plano
+    fetch(urlScript, {
+        method: 'POST',
+        mode: 'no-cors', // Necesario para Google Scripts
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, asistentes: pases })
+    });
+}
     // Función para generar QR al confirmar
     function generarQR(nombre, pases) {
     document.getElementById('seccion-formulario').innerHTML =
@@ -307,27 +327,6 @@
         height: 150,
         colorDark : "#000000",
         colorLight : "#ffffff"
-    });
-    }
-
-    function enviarRSVP() {
-    const id = new URLSearchParams(window.location.search).get('id');
-    const asistentes = document.getElementById('form-pases').value;
-    const nombre = document.getElementById('form-nombre').value;
-
-    // Bloquear botón para evitar doble clic
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerText = "PROCESANDO...";
-
-    // Enviar a tu Google Apps Script (backend)
-    fetch('https://script.google.com/macros/s/AKfycbytn1uReVUpO1nl9cGb5eEkF-javjTfA8EIY2p6IUOJ3C_ru1hlnX8KvF3DLXQT3H4iFA/exec', {
-        method: 'POST',
-        mode: 'no-cors', // Importante para Google Scripts
-        body: JSON.stringify({id: id, asistentes: asistentes})
-    }).then(() => {
-        generarQR(nombre, asistentes);
-        localStorage.setItem('confirmado_' + id, asistentes); // Guardar en el navegador
     });
     }
 
