@@ -3,282 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ariana & Martin - Nuestra Boda</title>
-    
-    <!-- Librerías Externas -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <title>Ariana & Martin - Noche Mexicana</title>
+    <!-- Librerías -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&family=Pinyon+Script&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
     <style>
-        :root { --oro: #c5a059; --negro: #0a0a0a; --crema: #fdfdfd; }
-        body, html { margin: 0; padding: 0; background-color: var(--negro); color: var(--crema); font-family: 'Montserrat', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
-        h1, h2, h3 { font-family: 'Cinzel', serif; color: var(--oro); }
-        .script-font { font-family: 'Pinyon Script', cursive; color: var(--oro); }
-
-        /* Capas de Pantallas */
-        #pantalla-sobre { position: fixed; inset: 0; z-index: 999; background: var(--negro); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.8s ease-in-out; }
-        .sobre-img { width: 85%; max-width: 400px; cursor: pointer; transition: 0.4s; z-index: 1000; filter: drop-shadow(0 0 10px rgba(197,160,89,0.3)); }
-        
-        /* Contenedor Principal */
-        #main-content.hidden { display: none; }
-
-        /* Botón Música Frontal */
-        #controles-musica { position: fixed; bottom: 30px; left: 20px; z-index: 10000 !important; }
-        #musicToggleBtn { border-radius: 50%; width: 50px; height: 50px; background: rgba(0,0,0,0.8); border: 2px solid var(--oro); cursor: pointer !important; pointer-events: auto !important; }
-
-        .hero { width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; text-align: center; padding-top: 60px; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('img/FotoPrincipal.jpeg'); background-size: cover; background-position: center 20%; background-repeat: no-repeat; }
-        @media (min-width: 1024px) { .hero { background-size: contain; background-color: black; height: 90vh; } }
-
-        .flower-banner { width: 100%; height: 120px; background: url('img/BanerFlores.png') center/cover; border-bottom: 2px solid var(--oro); }
-        .card-mex { background: rgba(255,255,255,0.03); border: 1px solid rgba(197, 160, 89, 0.2); padding: 30px; }
-        .foto-borde { border: 2px solid var(--oro); padding: 5px; width: 100%; max-height: 450px; object-fit: cover; }
-        .countdown-item { border: 1px solid var(--oro); background: rgba(197,160,89,0.1); flex: 1; padding: 10px; min-width: 70px; }
+        :root { --oro: #c5a059; --negro: #0a0a0a; }
+        body, html { margin:0; padding:0; background: var(--negro); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+        #pantalla-sobre { position: fixed; inset: 0; z-index: 1000; background: #000; display:flex; justify-content:center; align-items:center; transition: 1s ease-in-out; }
+        .sobre-img { width: 80%; max-width: 350px; cursor: pointer; }
+        #musicToggleBtn { position: fixed; bottom: 85px; left: 20px; z-index: 9999; border-radius: 50%; width: 50px; height: 50px; background: rgba(0,0,0,0.85); border: 2px solid var(--oro); cursor: pointer !important; pointer-events: auto !important; display: flex; align-items: center; justify-content: center; color: var(--oro); font-size: 10px; font-weight: bold; }
+        .hero { height: 100vh; display:flex; flex-direction:column; justify-content: flex-start; align-items:center; text-align:center; padding-top: 60px; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('img/FotoPrincipal.jpeg') no-repeat center/cover; }
+        @media (min-width: 1024px) { .hero { background-size: contain; background-color: #000; height: 85vh; } }
+        .banner { width: 100%; height: 130px; background: url('img/BanerFlores.png') center/cover; border-bottom: 2px solid var(--oro); }
+        .alert-limit { background: linear-gradient(45deg, #c5a059, #b08d48); color: black; padding: 10px; width: 100%; font-weight: bold; font-size: 10px; text-align: center; }
+        .section-img { border: 2px solid var(--oro); padding: 5px; width: 100%; max-height: 400px; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <audio id="weddingSong" loop>
-        <source src="musica.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="cancion" loop><source src="musica.mp3" type="audio/mpeg"></audio>
 
-    <!-- SOBRE DE APERTURA -->
-    <div id="pantalla-sobre">
-        <img src="img/SobreCerrado.png" id="btn-abrir" class="sobre-img" alt="Toca para abrir">
-        <p class="mt-8 tracking-[4px] text-xs uppercase animate-pulse text-white">Haz clic para abrir invitación</p>
-    </div>
+    <div id="pantalla-sobre" onclick="abrirTodo()"><img src="img/SobreCerrado.png" class="sobre-img"><p class="text-white text-xs tracking-widest mt-4">Toca para abrir ✉️</p></div>
 
-    <!-- CONTENIDO INVITACIÓN -->
-    <div id="main-content" class="hidden">
+    <div id="index-body" class="hidden">
+        <button id="musicToggleBtn">ON</button>
         
-        <div id="controles-musica">
-            <button id="musicToggleBtn"><span id="music-icon" class="text-[var(--oro)] font-bold text-[10px]">OFF</span></button>
+        <div class="banner"></div>
+        <div class="alert-limit">⚠️ TIEMPO LÍMITE: 26 DE AGOSTO DEL 2026 ⚠️</div>
+
+        <section class="hero px-4">
+            <div data-aos="fade-down" data-aos-duration="1200">
+                <h1 class="text-4xl md:text-7xl font-bold text-[#c5a059]">Ariana & Martin</h1>
+                <p class="script-font text-3xl">¡Nuestra Boda!</p>
+            </div>
+        </section>
+
+        <!-- Cronómetro -->
+        <div class="py-10 bg-[#050505] flex justify-center gap-4 text-center">
+            <div><span id="d" class="text-3xl font-bold">00</span><br><small>HDP</small></div>
+            <div><span id="h" class="text-3xl font-bold">00</span><br><small>HR</small></div>
+            <div><span id="m" class="text-3xl font-bold">00</span><br><small>MN</small></div>
+            <div><span id="s" class="text-3xl font-bold text-[var(--oro)]">00</span><br><small>SG</small></div>
         </div>
 
-        <div class="flower-banner"></div>
+        <main class="max-w-4xl mx-auto space-y-24 py-20 px-6">
+            <!-- Historia -->
+            <section class="grid md:grid-cols-2 gap-10 items-center">
+                <div data-aos="fade-right"><img src="img/FotoHistoria.jpeg" class="section-img"></div>
+                <div>
+                    <h2 class="text-3xl mb-4 font-serif text-[var(--oro)]">Un Amor Muegano</h2>
+                    <p class="text-sm leading-relaxed opacity-80">Complicidad de oficina convertida en vida entera. 8 años juntos y la familia no se equivocaba: somos invencibles cuando estamos de "mueganos". ¡Te esperamos para celebrar nuestro SI!</p>
+                </div>
+            </section>
 
-        <header class="hero">
-            <div data-aos="fade-down" data-aos-duration="1200">
-                <h1 class="text-4xl md:text-7xl mb-2">Ariana & Martin</h1>
-                <p class="script-font text-2xl md:text-4xl italic">¡Nos casamos!</p>
-                <div class="w-12 h-[1px] bg-[var(--oro)] mx-auto my-6"></div>
-                <p class="uppercase tracking-[4px] text-[10px] md:text-sm">12 . SEPTIEMBRE . 2026</p>
-            </div>
-        </header>
+            <!-- Vestimenta -->
+            <section class="grid md:grid-cols-2 gap-10 items-center" id="code">
+                <div class="order-2 md:order-1">
+                    <h2 class="text-2xl mb-4 text-[var(--oro)]">CÓDIGO: FORMAL MEXICANO</h2>
+                    <p class="text-xs bg-[#c5a0595d] p-3 border-l-4 border-[var(--oro)] mb-4">Luce genial, usa toques tradicionales mexicanos en tu atuendo.</p>
+                    <p class="text-sm text-white font-bold underline"><span class="text-white border-b border-[var(--oro)]"></span>NOTITA:</span> Chicas, pedimos de forma súper amable <strong>no usar blanco o beige</strong> ese día. Es el color de la novia, ¿vale? ¡Gracias!</p>
+                </div>
+                <div class="order-1 md:order-2" data-aos="fade-left"><img src="img/FotoVestimenta.jpeg" class="section-img"></div>
+            </section>
 
-        <!-- Reloj -->
-        <section class="py-12 bg-black text-center px-4">
-            <h3 class="mb-6 tracking-widest text-[#c5a059] text-xs uppercase font-bold">¡La cuenta regresiva ha comenzado!</h3>
-            <div id="countdown" class="flex justify-center gap-2 md:gap-4">
-                <div class="countdown-item"><span id="days" class="text-xl font-bold block text-[var(--oro)]">00</span><small class="text-[8px] uppercase">Días</small></div>
-                <div class="countdown-item"><span id="hours" class="text-xl font-bold block text-[var(--oro)]">00</span><small class="text-[8px] uppercase">Horas</small></div>
-                <div class="countdown-item"><span id="minutes" class="text-xl font-bold block text-[var(--oro)]">00</span><small class="text-[8px] uppercase">Minutos</small></div>
-                <div class="countdown-item"><span id="seconds" class="text-xl font-bold block text-[var(--oro)]">00</span><small class="text-[8px] uppercase">Segundos</small></div>
-            </div>
-        </section>
-
-        <!-- Historia -->
-        <section class="py-16 px-6 max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-            <div data-aos="fade-right"><img src="img/FotoHistoria.jpeg" class="foto-borde"></div>
-            <div data-aos="fade-left">
-                <h2 class="text-2xl mb-4">Un Amor Muegano</h2>
-                <p class="text-gray-300 font-light text-sm italic leading-loose">
-                    Complicidad de oficina convertida en vida entera. 8 años juntos y la familia no se equivocaba: somos invencibles cuando estamos de "mueganos". ¡Te esperamos para celebrar nuestro SI!
-                </p>
-            </div>
-        </section>
-
-        <!-- Vestimenta -->
-        <section class="py-16 px-6 bg-[#080808]">
-            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-                <div class="order-2 md:order-1" data-aos="fade-right">
-                    <h3 class="text-xl mb-4 font-bold text-[var(--oro)]">CÓDIGO: FORMAL MEXICANO</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                        Luce genial, usa toques tradicionales mexicanos en tu atuendo. <br><br>
-                        <span class="text-white border-b border-[var(--oro)]">NOTITA:</span> Chicas, pedimos de forma súper amable <strong>no usar blanco o beige</strong> ese día. Es el color de la novia, ¿vale? ¡Gracias!
+            <!-- Niños con supervisión -->
+            <section class="grid md:grid-cols-2 gap-10 items-center">
+                <div data-aos="zoom-in"><img src="img/FotoNinos.jpeg" class="section-img"></div>
+                <div class="space-y-4">
+                    <h3 class="text-xl text-[var(--oro)]">SOBRE NUESTROS MINI INVITADOS</h3>
+                    <p class="text-xs leading-relaxed opacity-70 italic border-l p-2 border-red-500">
+                        Como bien saben, nuestra recepción es en un <strong class="text-white underline">segundo piso</strong>. Solicitamos de corazón que no descuiden a sus niños en escaleras ni durante el vals.
                     </p>
                 </div>
-                <div class="order-1 md:order-2" data-aos="fade-left"><img src="img/FotoVestimenta.jpeg" class="foto-borde"></div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Niños -->
-        <section class="py-16 px-6 max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-            <div data-aos="fade-right"><img src="img/FotoNinos.jpeg" class="foto-borde"></div>
-            <div data-aos="fade-left">
-                <h3 class="text-xl mb-4 [var(--oro)]">AVISO PARA PEQUES</h3>
-                <p class="text-gray-400 text-sm leading-loose">
-                    Sabemos que los reyes del hogar dan mucha alegría, pero tengan en cuenta que el salón está en un <strong class="text-white underline">segundo piso</strong>. Favor de vigilarlos todo el tiempo y mantenerlos en calma durante el vals y los momentos clave.
-                </p>
-            </div>
-        </section>
+            <!-- Agenda -->
+            <section class="text-center" data-aos="fade-up">
+                 <h2 class="text-2xl mb-8 uppercase">Ceremonia y Fiesta</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div class="p-6 border border-gray-800">
+                        <h4>MISA Iglesia de Nuestra Señora de La Medalla Milagrosa - 17:30 H </h4>
+                        <a href="https://maps.app.goo.gl/4Emayy4LkSpNbowM7" class="text-[var(--oro)] underline text-xs mt-4 block">📍 Maps Iglesia</a>
+                     </div>
+                     <div class="p-6 border border-gray-800">
+                        <h4>FIESTA Salones Bersach - 20:00 H</h4>
+                        <a href="https://maps.app.goo.gl/xFAeJim9wd7n2VAC8" class="text-[var(--oro)] underline text-xs mt-4 block">📍 Maps Salón</a>
+                     </div>
+                 </div>
+                 <a id="btn-gc" target="_blank" class="mt-8 inline-block opacity-40 text-[10px] underline">🗓 AGENDAR A MI CALENDARIO</a>
+            </section>
 
-        <!-- Ubicaciones -->
-        <section class="py-20 bg-[#0c0c0c] px-4 text-center">
-            <h2 class="text-2xl mb-10">Agéndalo</h2>
-            <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
-                <div class="card-mex" data-aos="zoom-in">
-                    <h4 class="text-sm font-bold opacity-60">IGLESIA (17:30 H)</h4>
-                    <a href="LINK_IGLESIA" target="_blank" class="mt-4 border border-[var(--oro)] p-2 text-xs text-[var(--oro)] inline-block">CÓMO LLEGAR IGLESIA 📍</a>
+            <!-- Regalos -->
+            <section class="grid md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <h2 class="text-2xl text-[var(--oro)] mb-4">Mesa de regalos</h2>
+                    <p class="text-sm italic italic leading-relaxed text-yellow-50 font-light opacity-80 underline">"El de a grapa ya no existe"...</p>
+                    <p class="text-xs leading-relaxed mt-4">Si gustan apoyarnos con el cochinito de la luna de miel, pueden traer su 'sobrecito' con alegría el día de la boda. Habrá un cofre esperándolos. ❤️</p>
                 </div>
-                <div class="card-mex" data-aos="zoom-in" data-aos-delay="200">
-                    <h4 class="text-sm font-bold opacity-60">FIESTA (20:00 H)</h4>
-                    <a href="LINK_MAPS" target="_blank" class="mt-4 border border-[var(--oro)] p-2 text-xs text-[var(--oro)] inline-block">CÓMO LLEGAR SALÓN ✨</a>
+                <div data-aos="fade-up"><img src="img/FotoRegalos.jpeg" class="section-img"></div>
+            </section>
+
+            <!-- RSVP Dinámico -->
+            <section class="py-20 text-center" id="rsvp-seccion">
+                <div id="rsvp-status-ui" class="bg-[#111] p-10 border border-dashed border-[var(--oro)]">
+                    <h2 class="text-xl mb-4 italic font-bold">Verificando invitación...</h2>
                 </div>
-            </div>
-        </section>
-
-        <!-- Botón Agenda (Google Calendar) -->
-        <div class="text-center py-6">
-            <a href="#" id="gen-calendar" target="_blank" class="text-gray-500 underline text-[10px] tracking-widest font-bold">🗓 AGENDAR A MI CALENDARIO GOOGLE</a>
-        </div>
-
-        <!-- Regalos -->
-        <section class="py-16 px-6 max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-            <div class="order-2 md:order-1" data-aos="fade-right">
-                <h3 class="text-xl mb-4 font-bold [var(--oro)] tracking-widest">REGALOS</h3>
-                <p class="text-gray-300 text-sm leading-loose mb-6">
-                    Sinceros y directos: no tenemos mesa de regalos. Si gustas hacernos un regalo de bodas para nuestra nueva vida juntos, lo que gustes para el "itacate" (cuyo) será de lujo para nuestro cochinito de recién casados. Habrá un cofre en el salón. ❤️
-                </p>
-            </div>
-            <div class="order-1 md:order-2" data-aos="fade-left"><img src="img/FotoRegalos.jpeg" class="foto-borde"></div>
-        </section>
-
-        <!-- Confirmación Dinámica -->
-        <section class="py-24 px-6 bg-[#080808] text-center" id="seccion-final">
-            <div id="rsvp-status-container" class="max-w-md mx-auto card-mex">
-                <h2 class="text-xl mb-6">Confirma tu asistencia antes del 12 de Agosto</h2>
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="text-[8px] text-[var(--oro)] uppercase font-bold tracking-widest mb-1 block">INVITADO</label>
-                        <input type="text" id="form-nombre" readonly class="w-full bg-[#111] p-2 text-white border-b border-[var(--oro)] outline-none text-xs">
-                    </div>
-                    <div>
-                        <label class="text-[8px] text-[var(--oro)] uppercase font-bold tracking-widest mb-1 block">TUS LUGARES RESERVADOS</label>
-                        <select id="form-pases" class="w-full bg-[#111] p-3 text-white border border-[var(--oro)] outline-none text-xs">
-                            <!-- JS Puts here -->
-                        </select>
-                    </div>
-                    <button onclick="realizarConfirmacion()" class="w-full bg-[var(--oro)] p-4 text-black text-[10px] font-bold uppercase transition hover:scale-95">CONFIRMAR MI ASISTENCIA POR WHATSAPP 📱</button>
-                    <p id="bloqueo-aviso" class="hidden text-[8px] text-red-500 italic mt-4">Confirmación guardada. ¡Gracias!</p>
-                </div>
-            </div>
-        </section>
-
-        <footer class="py-10 text-center text-gray-700 text-[8px] tracking-[6px] uppercase italic">
-            Ariana & Martin | 2026
-        </footer>
+            </section>
+        </main>
     </div>
 
+    <!-- Script de Lógica -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init();
-        const reproductor = document.getElementById('weddingSong');
-        const btonReproducir = document.getElementById('musicToggleBtn');
-        const icoMusica = document.getElementById('music-icon');
-        const idGuest = new URLSearchParams(window.location.search).get('id');
+        const scURL = "https://script.google.com/macros/s/AKfycbwLFURapuxdqf0x3MoZR7COMoTgwMiZwftAiNw5wKnvoiwYIav9HWxO7Pg2lec0rIkgEQ/exec"; // <--- ACTUALIZA
+        const audio = document.getElementById('cancion');
+        const btm = document.getElementById('musicToggleBtn');
+        const qId = new URLSearchParams(window.location.search).get('id');
 
-        // Abre el Sobre
-        document.getElementById('btn-abrir').addEventListener('click', function() {
-            // Reproducir Audio (Forzar al primer click)
-            reproductor.play().then(() => {
-                icoMusica.innerText = "ON";
-                btonReproducir.classList.add('animate-pulse');
-            }).catch(e => console.log("Audio Bloqueado"));
+        // MÚSICA
+        btm.onclick = () => audio.paused ? (audio.play(), btm.innerText='ON') : (audio.pause(), btm.innerText='OFF');
 
+        // ABRIR
+        function abrirTodo(){
+            audio.play().then(() => btm.innerText='ON').catch(() => btm.innerText='OFF');
             document.getElementById('pantalla-sobre').style.opacity = '0';
-            document.getElementById('pantalla-sobre').style.transform = 'scale(1.5)';
-            
             setTimeout(() => {
-                document.getElementById('pantalla-sobre').style.display = 'none';
-                document.getElementById('main-content').classList.remove('hidden');
-                
-                // Configuración de Agenda y Reloj
-                cargarInvitado();
-                actualizarReloj();
-                cargarEventoCalendario();
+                document.getElementById('pantalla-sobre').style.display='none';
+                document.getElementById('index-body').classList.remove('hidden');
+                configCheck(); iniciarReloj(); configuraraCalEvent(); AOS.refresh();
             }, 800);
-        });
+        }
 
-        // Toggle Musica
-        btonReproducir.addEventListener('click', function() {
-            if (reproductor.paused) {
-                reproductor.play(); icoMusica.innerText = "ON"; btonReproducir.classList.add('animate-pulse');
-            } else {
-                reproductor.pause(); icoMusica.innerText = "OFF"; btonReproducir.classList.remove('animate-pulse');
+        // CARGAR DATOS Y BLOQUEO AUTOMÁTICO
+        async function configCheck(){
+            const now = new Date();
+            const limit = new Date("August 13, 2026 23:59:59");
+            const rsvpUI = document.getElementById('rsvp-status-ui');
+
+            // 1. Verificar Fecha Máxima
+            if (now > limit) {
+                blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+                return;
             }
-        });
 
-        // Cronómetro a la fecha actual (12 Septiembre 2026 17:30)
-        function actualizarReloj() {
-            const bodaFix = new Date("Sep 12, 2026 17:30:00").getTime();
+            // 2. Fetch Data si no ha pasado tiempo
+            try {
+                const response = await fetch(scURL + '?id=' + qId);
+                const inv = await response.json();
+
+                if (inv.confirmado === "SI" || localStorage.getItem('c_'+qId)) {
+                    confirmedUI(rsvpUI, inv.nombre, localStorage.getItem('c_'+qId) || "---");
+                    return;
+                }
+
+                rsvpUI.innerHTML = `
+                    <h3 class="mb-4">HOLA ${inv.nombre || "INVITADO"}</h3>
+                    <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
+                    <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4">
+                        ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Pax</option>`).join('')}
+                    </select>
+                    <button onclick="registrarRsvp()" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
+                    <p class="text-[8px] mt-4 opacity-50">SI CONFIRMAS, NO PODRÁS CAMBIAR LA INFO DESPUÉS</p>
+                `;
+            } catch(e) { rsvpUI.innerHTML="Acceso restringido."; }
+        }
+
+        // POST Y QR
+        function registrarRsvp(){
+            const pax = document.getElementById('p_final').value;
+            localStorage.setItem('c_'+qId, pax);
+            fetch(scURL, { method: "POST", mode:"no-cors", body: JSON.stringify({id: qId, asistentes: pax}) });
+            window.open("https://wa.me/525615273394", "_blank"); // REEMPLAZAR
+            confirmedUI(document.getElementById('rsvp-status-ui'), "Confirmado", pax);
+        }
+
+        function confirmedUI(container, nom, can){
+            container.innerHTML = `<h2 class='text-[#c5a059] mb-4 font-black'>¡TE ESPERAMOS!</h2>
+                <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
+                <p class='text-xs opacity-50 uppercase'>Pases: ${can}</p>
+            `;
+            new QRCode(document.getElementById('qr'), { text: `ACCESO-BODA-${qId}-${nom}-${can}`, width:150, height:150});
+        }
+
+        function blockedUI(container, hnt){
+            container.innerHTML = `<h2 class='text-red-500 font-bold mb-4 uppercase'>Confirmación Cerrada</h2><p class='text-[10px] leading-loose opacity-60'>${hnt}</p>`;
+        }
+
+        // CRONÓMETRO Y FECHA
+        function iniciarReloj() {
+            const exp = new Date("Sep 12, 2026 17:30:00").getTime();
             setInterval(() => {
                 const now = new Date().getTime();
-                const d = bodaFix - now;
-                document.getElementById('days').textContent = Math.floor(d / 864e5);
-                document.getElementById('hours').textContent = Math.floor((d % 864e5) / 36e5);
-                document.getElementById('minutes').textContent = Math.floor((d % 36e5) / 60e3);
-                document.getElementById('seconds').textContent = Math.floor((d % 60e3) / 1000);
+                const diffTime = exp - now;
+                document.getElementById('d').innerText = Math.floor(diffTime / 864e5);
+                document.getElementById('h').innerText = Math.floor((diffTime % 864e5) / 36e5);
+                document.getElementById('m').innerText = Math.floor((diffTime % 36e5) / 6e4);
+                document.getElementById('s').innerText = Math.floor((diffTime % 6e4) / 1000);
             }, 1000);
         }
 
-        // Lógica de Invitados (Ajustado)
-        function cargarInvitado() {
-            // Diccionario provisional (puedes ampliarlo aquí)
-            const listadopro = {
-                "fam01": { n: "Familia García López", p: 4 },
-                "lic02": { n: "Lic. Roberto Pérez", p: 2 },
-                "inv55": { n: "Ariana & Martin", p: 2 }
-            };
-
-            const data = listadopro[idGuest] || { n: "Muegano Invitado", p: 4 };
-            document.getElementById('form-nombre').value = data.n;
-            const slct = document.getElementById('form-pases');
-            for(let i=1; i<=data.p; i++){
-                const o = document.createElement("option"); o.value=i; o.text= i + (i==1 ? " Pase" : " Pases"); slct.add(o);
-            }
-
-            // Si ya confirmó antes en esta maquina...
-            if(localStorage.getItem('conf_' + idGuest)) {
-                mostrarYAconfirmado(data.n, localStorage.getItem('conf_' + idGuest));
-            }
-        }
-
-        // Accion Confirmar
-        function realizarConfirmacion() {
-            const nombre = document.getElementById('form-nombre').value;
-            const pases = document.getElementById('form-pases').value;
-            localStorage.setItem('conf_' + idGuest, pases); // Bloqueo Local
-            
-            // Link Dinamico de Confirmación
-            const linkWA = `https://wa.me/5215500000000?text=${encodeURIComponent('¡Hola Ariana y Martin! Confirmo que ahí estaremos: ' + nombre + ' con ' + pases + ' pases.')}`;
-            
-            mostrarYAconfirmado(nombre, pases);
-            window.open(linkWA, '_blank');
-        }
-
-        function mostrarYAconfirmado(nombre, pases) {
-            document.getElementById('rsvp-status-container').innerHTML = `
-                <div class="text-center p-3 animate-zoom-in">
-                    <h2 class="text-[#c5a059] font-bold mb-4">¡NOS DA MUCHO GUSTO!</h2>
-                    <div id="place-qr" class="inline-block bg-white p-3 border-4 border-[#c5a059] mb-4"></div>
-                    <p class="text-gray-300 text-[10px] uppercase font-bold">${nombre}</p>
-                    <p class="text-[var(--oro)] font-bold text-lg mb-2">${pases} LUGARES CONFIRMADOS 🙏🇲🇽</p>
-                    <button onclick="window.location.reload()" class="text-[8px] underline italic text-gray-600">Actualizar datos</button>
-                    <p class="mt-4 text-[7px] opacity-40 uppercase">Toma captura de pantalla a tu código QR para el boleto de acceso</p>
-                </div>
-            `;
-            setTimeout(() => {
-                new QRCode(document.getElementById("place-qr"), {
-                    text: `BODA-ACC-26-${idGuest}-${nombre}-${pases}`, width: 140, height: 140
-                });
-            }, 100);
-        }
-
-        function cargarEventoCalendario() {
-            const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda de Ariana & Martin 💍🇲🇽')}&dates=20260912T233000Z/20260913T100000Z&details=Recuerda llevar tu captura del código QR para el acceso. ¡Nos vemos!&location=UBICACION_AQUI&sf=true&output=xml`;
-            document.getElementById('gen-calendar').href = googleUrl;
+        function configuraraCalEvent(){
+            const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍')}&dates=20260912T233000Z/20260913T090000Z&location=SALÓN_DIRECCIÓN_FALTAR_AQUI&sf=true&output=xml`;
+            document.getElementById('btn-gc').href = cal;
         }
     </script>
 </body>
