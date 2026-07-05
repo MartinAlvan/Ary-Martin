@@ -85,28 +85,32 @@
             }
         }
 
+        // Busca esta función en tu archivo entrada.html y reemplázala:
         function mostrarPanel(arr) {
-            // Buscamos partes de Nombre y Cantidad (basándonos en tu QR de index.html)
-            let nombre = "";
-            let pases = "0";
+            let nombre = "Invitado";
+            let pases = "Error";
 
-            // Recorremos los fragmentos del QR buscando los prefijos ST (Staff/Sujeto) y C (Cantidad)
-            arr.forEach(f => {
-                if(f.includes("ST:")) nombre = f.replace("ST:", "");
-                if(f.includes("C:")) pases = f.replace("C:", "");
-            });
+            // Recorremos los fragmentos del QR buscando datos específicos
+            arr.forEach(fragmento => {
+            if(fragmento.includes("ST:")) {
+                nombre = fragmento.replace("ST:", "").trim();
+            }
+            if(fragmento.includes("C:")) {
+                pases = fragmento.replace("C:", "").trim();
+            }
+        });
 
-            // Si por alguna razón el formato cambió un poco, intentamos respaldo
-            if(!nombre) nombre = arr[3] || "Invitado";
-            if(pases == "0") pases = arr[4] || "?";
-
-            const panel = document.getElementById('status-panel');
-            panel.classList.remove('hidden');
-            panel.classList.add('border-green-500', 'animate-pulse');
-
-            document.getElementById('guest-name').innerText = nombre;
-            document.getElementById('guest-paxes').innerText = pases;
+        const panel = document.getElementById('status-panel');
+        panel.classList.remove('hidden');
+    
+        // Si detectamos pases, lo ponemos en verde
+        if(pases !== "Error") {
+            panel.style.borderColor = "#22c55e"; 
         }
+
+        document.getElementById('guest-name').innerText = nombre;
+        document.getElementById('guest-paxes').innerText = pases;
+    }        
     </script>
 </body>
 </html>
