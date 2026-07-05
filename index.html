@@ -18,15 +18,56 @@
         .hero { height: 100vh; display:flex; flex-direction:column; justify-content: flex-start; align-items:center; text-align:center; padding-top: 60px; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('img/FotoPrincipal.jpeg') no-repeat center/cover; }
         @media (min-width: 1024px) { .hero { background-size: contain; background-color: #000; height: 85vh; } }
         .banner { width: 100%; height: 130px; background: url('img/BanerFlores.png') center/cover; border-bottom: 2px solid var(--oro); }
-        .alert-limit { background: linear-gradient(45deg, #c5a059, #b08d48); color: black; padding: 10px; width: 100%; font-weight: bold; font-size: 10px; text-align: center; }
         .section-img { border: 2px solid var(--oro); padding: 5px; width: 100%; max-height: 400px; object-fit: cover; }
+        /* Aviso de tiempo límite resaltado */
+    .alert-limit {
+        background-color: var(--oro); /* Color base (Dorado) */
+        color: black;
+        padding: 12px;
+        width: 100%;
+        font-weight: bold;
+        font-size: 11px;
+        text-align: center;
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 10;
+        /* Activamos la animación de parpadeo sólido */
+        animation: flash-blanco 1.2s infinite ease-in-out;
+        border-bottom: 2px solid black;
+    }
+
+    @keyframes flash-blanco {
+        0% {
+            background-color: #c5a059; /* Dorado original */
+            box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+        }
+        50% {
+            background-color: #ffffff; /* Blanco brillate en el centro */
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); /* Brillo externo para que "salte" */
+            color: #000;
+            transform: scale(1.02); /* Pequeño pulso de aumento */
+        }
+        100% {
+            background-color: #c5a059; /* Regresa a dorado */
+            box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+            transform: scale(1);
+        }
+    }
     </style>
 </head>
 <body>
 
     <audio id="cancion" loop><source src="musica.mp3" type="audio/mpeg"></audio>
 
-    <div id="pantalla-sobre" onclick="abrirTodo()"><img src="img/SobreCerrado.png" class="sobre-img"><p class="text-white text-xs tracking-widest mt-4">Toca para abrir ✉️</p></div>
+    <div id="pantalla-sobre" onclick="abrirTodo()">
+        <img src="img/SobreCerrado.png" class="sobre-img">
+        <p class="mt-8 tracking-[4px] text-xs uppercase opacity-50 animate-pulse">Haz clic en el sobre para abrir ✉️</p>
+    </div>
+
+    <div id="pantalla-sobre">
+        <img src="img/SobreCerrado.png" alt="Abrir Invitación" class="sobre-img" onclick="abrirInvitacion()">
+        <p class="mt-8 tracking-[4px] text-xs uppercase opacity-50 animate-pulse">Haz clic en el sobre para abrir</p>
+    </div>
 
     <div id="index-body" class="hidden">
         <button id="musicToggleBtn">ON</button>
@@ -36,17 +77,19 @@
 
         <section class="hero px-4">
             <div data-aos="fade-down" data-aos-duration="1200">
-                <h1 class="text-4xl md:text-7xl font-bold text-[#c5a059]">Ariana & Martin</h1>
-                <p class="script-font text-2xl md:text-4xl italic">¡Nos casamos!</p>
+                <h1 class="text-5xl md:text-8xl mb-4">Ariana & Martin</h1>
+                <p class="script-font text-3xl md:text-5xl">Nuestra Boda</p>
+                <div class="w-20 h-[1px] bg-[var(--oro)] mx-auto my-8"></div>
+                <p class="uppercase tracking-[8px] text-sm md:text-xl">12 . Septiembre . 2026</p>
             </div>
         </section>
 
         <!-- Cronómetro -->
         <div class="py-10 bg-[#050505] flex justify-center gap-4 text-center">
-            <div><span id="d" class="text-3xl font-bold">00</span><br><small>HDP</small></div>
-            <div><span id="h" class="text-3xl font-bold">00</span><br><small>HR</small></div>
-            <div><span id="m" class="text-3xl font-bold">00</span><br><small>MN</small></div>
-            <div><span id="s" class="text-3xl font-bold text-[var(--oro)]">00</span><br><small>SG</small></div>
+            <div><span id="d" class="text-3xl font-bold">00</span><br><small>Dias</small></div>
+            <div><span id="h" class="text-3xl font-bold">00</span><br><small>Horas</small></div>
+            <div><span id="m" class="text-3xl font-bold">00</span><br><small>Minutos</small></div>
+            <div><span id="s" class="text-3xl font-bold text-[var(--oro)]">00</span><br><small>Segundos</small></div>
         </div>
 
         <main class="max-w-4xl mx-auto space-y-24 py-20 px-6">
@@ -54,8 +97,8 @@
             <section class="grid md:grid-cols-2 gap-10 items-center">
                 <div data-aos="fade-right"><img src="img/FotoHistoria.jpeg" class="section-img"></div>
                 <div>
-                    <h2 class="text-3xl mb-4 font-serif text-[var(--oro)]">Un Amor Muegano</h2>
-                    <p class="text-sm leading-relaxed opacity-80">Complicidad de oficina convertida en vida entera. 8 años juntos y la familia no se equivocaba: somos invencibles cuando estamos de "mueganos". ¡Te esperamos para celebrar nuestro SI!</p>
+                    <h2 class="text-3xl mb-4 font-serif text-[var(--oro)]">Un Amor Eterno e incondicional</h2>
+                    <p class="text-sm leading-relaxed opacity-80">Complicidad de oficina convertida en vida entera. 8 años juntos y la familia no se equivocaba: somos invencibles cuando estamos juntos. ¡Te esperamos para celebrar nuestro SI!</p>
                 </div>
             </section>
 
@@ -75,7 +118,7 @@
                 <div class="space-y-4">
                     <h3 class="text-xl text-[var(--oro)]">SOBRE NUESTROS MINI INVITADOS</h3>
                     <p class="text-xs leading-relaxed opacity-70 italic border-l p-2 border-red-500">
-                        Como bien saben, nuestra recepción es en un <strong class="text-white underline">segundo piso</strong>. Solicitamos de corazón que no descuiden a sus niños en escaleras ni durante el vals.
+                        Como nuestra recepción es en un <strong class="text-white underline">segundo piso</strong>. Solicitamos de corazón que no descuiden a sus niños en escaleras ni durante el vals.
                     </p>
                 </div>
             </section>
@@ -100,8 +143,8 @@
             <section class="grid md:grid-cols-2 gap-10 items-center">
                 <div>
                     <h2 class="text-2xl text-[var(--oro)] mb-4">Mesa de regalos</h2>
-                    <p class="text-sm italic italic leading-relaxed text-yellow-50 font-light opacity-80 underline">"El de a grapa ya no existe"...</p>
-                    <p class="text-xs leading-relaxed mt-4">Si gustan apoyarnos con el cochinito de la luna de miel, pueden traer su 'sobrecito' con alegría el día de la boda. Habrá un cofre esperándolos. ❤️</p>
+                    <p class="text-sm italic italic leading-relaxed text-yellow-50 font-light opacity-80 underline">Su presencia en la celebración de nuestro matrimonio es, sin duda, nuestro obsequio más valioso y especial. Debido a que ya contamos con lo necesario para el inicio de nuestra vida estable como matrimonio, hemos optado por no contar con una lista de regalos tradicional.</p>
+                    <p class="text-xs leading-relaxed mt-4">No obstante, si es su deseo tener un detalle con nosotros para nuestra nueva etapa y el inicio de nuestro viaje de bodas, cualquier contribución de carácter económico será recibida con profundo agradecimiento. El día de la celebración, dispondremos de un receptáculo especial destinado para este fin.❤️</p>
                 </div>
                 <div data-aos="fade-up"><img src="img/FotoRegalos.jpeg" class="section-img"></div>
             </section>
@@ -186,10 +229,22 @@
                 <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
                 <p class='text-xs opacity-50 uppercase'>Pases: ${can}</p>
             `;
-            new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
-             width: 140,
-             height: 140
+            //new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
+             //width: 140,
+             //height: 140
+            //});
+            setTimeout(() => {
+                new QRCode(document.getElementById("qr"), {
+                // "BODA-ACC" le dice al STAFF que es válido
+                // "ST:" marca el nombre del invitado
+                // "C:" marca la cantidad de pases
+                text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, 
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
             });
+            }, 200);
         }
 
         function blockedUI(container, hnt){
