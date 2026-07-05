@@ -229,22 +229,10 @@
                 <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
                 <p class='text-xs opacity-50 uppercase'>Pases: ${can}</p>
             `;
-            //new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
-             //width: 140,
-             //height: 140
-            //});
-            setTimeout(() => {
-                new QRCode(document.getElementById("qr"), {
-                // "BODA-ACC" le dice al STAFF que es válido
-                // "ST:" marca el nombre del invitado
-                // "C:" marca la cantidad de pases
-                text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, 
-                width: 150,
-                height: 150,
-                colorDark : "#000000",
-                colorLight : "#ffffff"
+            new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
+             width: 140,
+             height: 140
             });
-            }, 200);
         }
 
         function blockedUI(container, hnt){
