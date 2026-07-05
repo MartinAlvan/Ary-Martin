@@ -186,7 +186,7 @@
                 <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
                 <p class='text-xs opacity-50 uppercase'>Pases: ${can}</p>
             `;
-            new QRCode(document.getElementById("qr-place"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
+            new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
              width: 140,
              height: 140
             });
