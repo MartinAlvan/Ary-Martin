@@ -10,7 +10,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --oro: #c5a059; --negro: #0a0a0a; }
+         :root { 
+        --oro: #c5a059;  /* El color dorado */
+        --negro: #0a0a0a; 
+        }
+
+        /* Forzar que todos los títulos h1, h2 y h3 sean dorados por defecto */
+        h1, h2, h3 { 
+            font-family: 'Cinzel', serif; 
+            color: var(--oro) !important; /* Importante para que no lo cambie Tailwind */
+        }
+
+        /* Configuración de la letra cursiva */
+        .script-font { 
+            font-family: 'Pinyon Script', cursive !important; 
+            color: var(--oro) !important;
+            /* Un poco de sombra para que resalte sobre la foto */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
         body, html { margin:0; padding:0; background: var(--negro); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
         #pantalla-sobre {
             position: fixed;
@@ -35,6 +53,7 @@
         .sobre-img:hover { transform: scale(1.05); }
 
         #musicToggleBtn { position: fixed; bottom: 85px; left: 20px; z-index: 9999; border-radius: 50%; width: 50px; height: 50px; background: rgba(0,0,0,0.85); border: 2px solid var(--oro); cursor: pointer !important; pointer-events: auto !important; display: flex; align-items: center; justify-content: center; color: var(--oro); font-size: 10px; font-weight: bold; }
+        
         .hero {
             position: relative;
             width: 100%;
@@ -50,7 +69,7 @@
             /* Añadimos un margen superior para que el texto no toque el borde */
             padding-top: 60px; 
 
-            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.4)), url('img/FotoPrincipal.jpeg');
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.4)), url('img/FotoPrincipal.png');
             background-size: cover;
             background-position: center 20%; 
             background-repeat: no-repeat;
@@ -152,12 +171,25 @@
 
         <section class="hero px-4">
             <div data-aos="fade-down" data-aos-duration="1200">
+            <!-- Añadimos text-[var(--oro)] para asegurar el color -->
+            <h1 class="text-5xl md:text-8xl mb-4 text-[var(--oro)]">Ariana & Martin</h1>
+            <!-- Nuestra Boda en cursiva y dorada -->
+            <p class="script-font text-4xl md:text-6xl mb-6">Nuestra Boda</p>
+            <div class="w-20 h-[1px] bg-[var(--oro)] mx-auto my-8"></div>
+                <p class="uppercase tracking-[8px] text-sm md:text-xl text-white opacity-80">
+                    12 . Septiembre . 2026
+                </p>
+            </div>
+        </section>
+
+        <!--<section class="hero px-4">
+            <div data-aos="fade-down" data-aos-duration="1200">
                 <h1 class="text-5xl md:text-8xl mb-4">Ariana & Martin</h1>
                 <p class="script-font text-3xl md:text-5xl">Nuestra Boda</p>
                 <div class="w-20 h-[1px] bg-[var(--oro)] mx-auto my-8"></div>
                 <p class="uppercase tracking-[8px] text-sm md:text-xl">12 . Septiembre . 2026</p>
             </div>
-        </section>
+        </section>-->
 
         <!-- Cronómetro -->
         <div class="py-10 bg-[#050505] flex justify-center gap-4 text-center">
