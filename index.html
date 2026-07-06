@@ -35,8 +35,63 @@
         .sobre-img:hover { transform: scale(1.05); }
 
         #musicToggleBtn { position: fixed; bottom: 85px; left: 20px; z-index: 9999; border-radius: 50%; width: 50px; height: 50px; background: rgba(0,0,0,0.85); border: 2px solid var(--oro); cursor: pointer !important; pointer-events: auto !important; display: flex; align-items: center; justify-content: center; color: var(--oro); font-size: 10px; font-weight: bold; }
-        .hero { height: 100vh; display:flex; flex-direction:column; justify-content: flex-start; align-items:center; text-align:center; padding-top: 60px; background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('img/FotoPrincipal.png') no-repeat center/cover; }
-        @media (min-width: 1024px) { .hero { background-size: contain; background-color: #000; height: 85vh; } }
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            
+            /* CAMBIO: Alineamos al inicio (arriba) en lugar de al centro */
+            justify-content: flex-start; 
+            align-items: center;
+            text-align: center;
+            
+            /* Añadimos un margen superior para que el texto no toque el borde */
+            padding-top: 60px; 
+
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.4)), url('img/FotoPrincipal.jpeg');
+            background-size: cover;
+            background-position: center 20%; 
+            background-repeat: no-repeat;
+        }
+
+        @media (min-width: 1024px) {
+            .hero {
+                /* En Laptop, si la imagen es muy grande, subimos el texto un poco más */
+                padding-top: 40px; 
+                background-attachment: fixed;
+                background-position: center 10%;
+                height: 90vh; 
+                
+                /* CLAVE 2: En lugar de 'cover', usamos porcentajes para controlar el zoom.
+                   100% de ancho y la altura que se ajuste sola (auto) */
+                background-size: 45% auto; 
+                
+                /* CLAVE 3: Un fondo negro detrás por si la foto no es tan ancha como la pantalla */
+                background-color: #000; 
+                
+                /* CLAVE 4: Ajustamos para que se priorice la parte superior/media (cabezas) */
+                background-position: center 20%; 
+                
+                /* Opcional: Si quieres que la foto se mueva un poco al bajar (Parallax) */
+                background-attachment: fixed;
+            }
+            
+            /* Hacemos el texto un poco más pequeño en laptop para que no tape */
+            .hero h1 { font-size: 4rem; }
+            .hero .script-font { font-size: 3rem; }
+        }
+
+        /* AJUSTE PARA CELULARES */
+        @media (max-width: 768px) {
+            .hero {
+                background-size: cover;
+                background-position: center center;
+                height: 85vh; /* Un poco menos de la pantalla completa para que se vea que hay contenido abajo */
+            }
+        }
+
         .banner { width: 100%; height: 130px; background: url('img/BanerFlores.png') center/cover; border-bottom: 2px solid var(--oro); }
         .section-img { border: 2px solid var(--oro); padding: 5px; width: 100%; max-height: 400px; object-fit: cover; }
         /* Aviso de tiempo límite resaltado */
