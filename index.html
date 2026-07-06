@@ -314,7 +314,7 @@
                     <h3 class="mb-4">HOLA ${inv.nombre || "INVITADO"}</h3>
                     <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
                     <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4">
-                        ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Pax</option>`).join('')}
+                        ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Invitado</option>`).join('')}
                     </select>
                     <button onclick="registrarRsvp()" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
                     <p class="text-[8px] mt-4 opacity-50">SI CONFIRMAS, NO PODRÁS CAMBIAR LA INFO DESPUÉS</p>
@@ -323,12 +323,43 @@
         }
 
         // POST Y QR
-        function registrarRsvp(){
+        /*function registrarRsvp(){
             const pax = document.getElementById('p_final').value;
             localStorage.setItem('c_'+qId, pax);
             fetch(scURL, { method: "POST", mode:"no-cors", body: JSON.stringify({id: qId, asistentes: pax}) });
             window.open("https://wa.me/525615273394", "_blank"); // REEMPLAZAR
             confirmedUI(document.getElementById('rsvp-status-ui'), "Confirmado", pax);
+        }*/
+        async function registrarRsvp() {
+            const cantidadSeleccionada = document.getElementById('p_final').value;
+            const nombreEnInput = document.getElementById('nombre-input').value;
+            // BLOQUE IMPORTANTE: Preparamos el mensaje antes del fetch
+            const mensajeWA = `¡Hola Ariana y Martin! 👋 \nConfirmo mi asistencia para: ${nombreEnInput} con ${cantidadSeleccionada} lugares. \n¡Nos vemos pronto! 🇲🇽💍`;
+            // Codificamos el texto de forma elegante
+            const textoCodificado = encodeURIComponent(mensajeWA);
+    
+            // URL según el dispositivo para asegurar compatibilidad
+            // "api.whatsapp.com" es más estable para móviles que "wa.me" con mensajes largos
+            const linkFinal = `https://api.whatsapp.com/send?phone=525615273394&text=${textoCodificado}`;
+
+            // 1. Guardar localmente
+            localStorage.setItem('ya_confirmo_' + miInvitadoId, cantidadSeleccionada);
+
+            // 2. Avisar al Sheets (sin esperar el resultado para no detener el proceso)
+            fetch(scURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({ action: "rsvp", id: miInvitadoId, asistentes: cantidadSeleccionada })
+            });
+
+            // 3. LA CLAVE: Cambiar de página inmediatamente
+            // En móviles, hacer clic en un botón DEBE llevarte al sitio inmediatamente o el texto se pierde
+            setTimeout(() => {
+                window.location.href = linkFinal; // Abre WhatsApp en la misma pestaña mejorando el éxito del texto
+            }, 100);
+
+            // 4. Mostrar el QR (esta parte sigue igual)
+            mostrarElCodigoQRFinal(nombreEnInput, cantidadSeleccionada);
         }
 
         function confirmedUI(container, nom, can){
