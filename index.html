@@ -349,7 +349,7 @@
 
         // Envío al Servidor (Sheets)
         fetch(scURL, {
-            method: "POST",
+            method: "GET",
             mode: "no-cors",
             body: JSON.stringify({ action: "rsvp", id: qId, asistentes: cantidad })
         });
