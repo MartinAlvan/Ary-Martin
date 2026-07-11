@@ -267,183 +267,182 @@
 
     <!-- Script de Lógica -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        AOS.init();
-        const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec"; // <--- ACTUALIZA
-        const audio = document.getElementById('cancion');
-        const btm = document.getElementById('musicToggleBtn');
-        const qId = new URLSearchParams(window.location.search).get('id');
+<script>
+    AOS.init();
+    
+    // VARIABLES GLOBALES
+    const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec";
+    const audio = document.getElementById('cancion');
+    const btm = document.getElementById('musicToggleBtn');
+    const qId = new URLSearchParams(window.location.search).get('id');
 
-        // MÚSICA
-        btm.onclick = () => audio.paused ? (audio.play(), btm.innerText='ON') : (audio.pause(), btm.innerText='OFF');
+    // CONTROL DE MÚSICA
+    btm.onclick = () => audio.paused ? (audio.play(), btm.innerText='ON') : (audio.pause(), btm.innerText='OFF');
 
-        // ABRIR
-        function abrirTodo(){
-            audio.play().then(() => btm.innerText='ON').catch(() => btm.innerText='OFF');
-            document.getElementById('pantalla-sobre').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('pantalla-sobre').style.display='none';
-                document.getElementById('index-body').classList.remove('hidden');
-                configCheck(); iniciarReloj(); configuraraCalEvent(); AOS.refresh();
-            }, 800);
+    // FUNCIÓN DE APERTURA (FLUJO INICIAL)
+    function abrirTodo(){
+        audio.play().then(() => btm.innerText='ON').catch(() => btm.innerText='OFF');
+        document.getElementById('pantalla-sobre').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('pantalla-sobre').style.display='none';
+            document.getElementById('index-body').classList.remove('hidden');
+            configCheck(); 
+            iniciarReloj(); 
+            configuraraCalEvent(); 
+            AOS.refresh();
+        }, 800);
+    }
+
+    // CARGAR DATOS Y CHECAR BLOQUEO
+    async function configCheck(){
+        const now = new Date();
+        const limit = new Date("August 13, 2026 23:59:59");
+        const rsvpUI = document.getElementById('rsvp-status-ui');
+
+        if (now > limit) {
+            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+            return;
         }
 
-        // CARGAR DATOS Y BLOQUEO AUTOMÁTICO
-        async function configCheck(){
-            const now = new Date();
-            const limit = new Date("August 13, 2026 23:59:59");
-            const rsvpUI = document.getElementById('rsvp-status-ui');
+        // VERIFICAR SI YA CONFIRMÓ O DECLINÓ ANTES
+        const estadoLocal = localStorage.getItem('conf_' + qId);
+        if (estadoLocal) {
+            if(estadoLocal === "DECLINADO") {
+                mostrarMensajeDespedida();
+            } else {
+                // Si confirmó, necesitamos recuperar su nombre desde la base o poner uno genérico para el QR
+                confirmedUI(rsvpUI, "Invitado", estadoLocal); 
+            }
+            return;
+        }
 
-            // 1. Verificar Fecha Máxima
-            if (now > limit) {
-                blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+        try {
+            const response = await fetch(scURL + '?id=' + qId);
+            const inv = await response.json();
+
+            if (inv.confirmado === "SI") {
+                confirmedUI(rsvpUI, inv.nombre, inv.asistentes || inv.pases);
                 return;
             }
 
-            // 2. Fetch Data si no ha pasado tiempo
-            try {
-                const response = await fetch(scURL + '?id=' + qId);
-                const inv = await response.json();
-
-                if (inv.confirmado === "SI" || localStorage.getItem('c_'+qId)) {
-                    confirmedUI(rsvpUI, inv.nombre, localStorage.getItem('c_'+qId) || "---");
-                    return;
-                }
-
-                rsvpUI.innerHTML = `
-                    <h3 class="mb-4">HOLA ${inv.nombre || "INVITADO"}</h3>
-                    <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
-                    <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4">
-                        ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Invitado</option>`).join('')}
-                    </select>
-                    <button onclick="registrarRsvp()" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
-                    <!-- Botón Declinar Invitación -->
-                    <button onclick="declinarInvitacion()" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition shadow-none cursor-pointer">
-                        Lamentablemente no podré asistir
-                    </button>
-                    <p class="text-[8px] mt-4 opacity-50">SI CONFIRMAS, NO PODRÁS CAMBIAR LA INFO DESPUÉS</p>
-                `;
-            } catch(e) { rsvpUI.innerHTML="Acceso restringido."; }
-        }
-
-        // POST Y QR
-        /*function registrarRsvp(){
-            const pax = document.getElementById('p_final').value;
-            localStorage.setItem('c_'+qId, pax);
-            fetch(scURL, { method: "POST", mode:"no-cors", body: JSON.stringify({id: qId, asistentes: pax}) });
-            window.open("https://wa.me/525615273394", "_blank"); // REEMPLAZAR
-            confirmedUI(document.getElementById('rsvp-status-ui'), "Confirmado", pax);
-        }*/
-        async function registrarRsvp() {
-            const cantidadSeleccionada = document.getElementById('p_final').value;
-            const nombreEnInput = document.getElementById('nombre-input').value;
-            // BLOQUE IMPORTANTE: Preparamos el mensaje antes del fetch
-            const mensajeWA = `¡Hola Ariana y Martin! 👋 \nConfirmo mi asistencia para: ${nombreEnInput} con ${cantidadSeleccionada} lugares. \n¡Nos vemos pronto! 🇲🇽💍`;
-            // Codificamos el texto de forma elegante
-            const textoCodificado = encodeURIComponent(mensajeWA);
-    
-            // URL según el dispositivo para asegurar compatibilidad
-            // "api.whatsapp.com" es más estable para móviles que "wa.me" con mensajes largos
-            const linkFinal = `https://api.whatsapp.com/send?phone=525615273394&text=${textoCodificado}`;
-
-            // 1. Guardar localmente
-            localStorage.setItem('ya_confirmo_' + qId, cantidadSeleccionada);
-
-            // 2. Avisar al Sheets (sin esperar el resultado para no detener el proceso)
-            fetch(scURL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ action: "rsvp", id: qId, asistentes: cantidadSeleccionada })
-            });
-
-            // 3. LA CLAVE: Cambiar de página inmediatamente
-            // En móviles, hacer clic en un botón DEBE llevarte al sitio inmediatamente o el texto se pierde
-            setTimeout(() => {
-                window.location.href = linkFinal; // Abre WhatsApp en la misma pestaña mejorando el éxito del texto
-            }, 100);
-
-            // 4. Mostrar el QR (esta parte sigue igual)
-            mostrarElCodigoQRFinal(nombreEnInput, cantidadSeleccionada);
-        }
-
-        function confirmedUI(container, nom, can){
-            container.innerHTML = `<h2 class='text-[#c5a059] mb-4 font-black'>¡TE ESPERAMOS!</h2>
-                <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
-                <p class='text-xs opacity-50 uppercase'>Pases: ${can}</p>
+            rsvpUI.innerHTML = `
+                <h3 class="mb-4 text-[#c5a059]">HOLA ${inv.nombre || "INVITADO"}</h3>
+                <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
+                <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4 outline-none">
+                    ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Invitado(s)</option>`).join('')}
+                </select>
+                <button onclick="registrarRsvp('${inv.nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
+                <button onclick="declinarInvitacion('${inv.nombre}')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition cursor-pointer">
+                    Lamentablemente no podré asistir
+                </button>
+                <p class="text-[8px] mt-4 opacity-50 uppercase tracking-widest">Si confirmas, no podrás cambiar la información después</p>
             `;
-            new QRCode(document.getElementById("qr"), {text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, // ESTE ES EL FORMATO SECRETO 
-             width: 140,
-             height: 140
-            });
+        } catch(e) { 
+            rsvpUI.innerHTML="<p class='text-xs opacity-50'>Cargando menú de invitados...</p>"; 
         }
-
-        function blockedUI(container, hnt){
-            container.innerHTML = `<h2 class='text-red-500 font-bold mb-4 uppercase'>Confirmación Cerrada</h2><p class='text-[10px] leading-loose opacity-60'>${hnt}</p>`;
-        }
-
-        // CRONÓMETRO Y FECHA
-        function iniciarReloj() {
-            const exp = new Date("Sep 12, 2026 17:30:00").getTime();
-            setInterval(() => {
-                const now = new Date().getTime();
-                const diffTime = exp - now;
-                document.getElementById('d').innerText = Math.floor(diffTime / 864e5);
-                document.getElementById('h').innerText = Math.floor((diffTime % 864e5) / 36e5);
-                document.getElementById('m').innerText = Math.floor((diffTime % 36e5) / 6e4);
-                document.getElementById('s').innerText = Math.floor((diffTime % 6e4) / 1000);
-            }, 1000);
-        }
-
-        function configuraraCalEvent(){
-            const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍')}&dates=20260912T233000Z/20260913T090000Z&location=SALÓN_DIRECCIÓN_FALTAR_AQUI&sf=true&output=xml`;
-            document.getElementById('btn-gc').href = cal;
-        }
-        /* Función para quien no puede asistir */
-        /* Función Unificada para No Asistir */
-function declinarInvitacion() {
-    // 1. Identificar al invitado (Asegúrate que qId esté definido arriba en tu script)
-    if (!qId) {
-        alert("Error: No se detectó ID de invitado");
-        return;
     }
 
-    const nombreInvitadoConfirmado = document.getElementById('nombre-input').value || "Invitado";
+    // FUNCIÓN PARA CONFIRMAR (RSVP)
+    function registrarRsvp(nombreInvitado) {
+        const cantidad = document.getElementById('p_final').value;
+        const msg = encodeURIComponent(`¡Hola Ariana y Martin! 👋 \nConfirmo mi asistencia para: ${nombreInvitado} con ${cantidad} lugar(es). \n¡Nos vemos pronto! 🇲🇽💍`);
+        
+        // Bloqueo Local
+        localStorage.setItem('conf_' + qId, cantidad);
 
-    // 2. Bloqueo Local
-    localStorage.setItem('conf_' + qId, "DECLINADO");
+        // Envío al Servidor (Sheets)
+        fetch(scURL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "rsvp", id: qId, asistentes: cantidad })
+        });
 
-    // 3. Envío a Google Sheets (USANDO TUS VARIABLES)
-    fetch(scURL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({ 
-            action: "declinar", 
-            id: qId, 
-            c: 0 
-        })
-    });
+        // Cambio visual y salida
+        const rsvpUI = document.getElementById('rsvp-status-ui');
+        confirmedUI(rsvpUI, nombreInvitado, cantidad);
+        
+        setTimeout(() => {
+            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msg}`;
+        }, 1000);
+    }
 
-    // 4. Salida a WhatsApp (Opcional, pero recomendado para avisarte)
-    const msj = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombreInvitadoConfirmado} no podremos acompañarlos a su boda. ¡Les deseamos lo mejor! 🥂`);
-    window.location.href = `https://api.whatsapp.com/send?phone=521234567890&text=${msj}`;
+    // FUNCIÓN PARA DECLINAR
+    function declinarInvitacion(nombreInvitado) {
+        // Bloqueo Local
+        localStorage.setItem('conf_' + qId, "DECLINADO");
 
-    // 5. Cambiar interfaz visual inmediatamente
-    mostrarMensajeDespedida();
-}
+        // Envío al Servidor (Avisa que es no asistirá)
+        fetch(scURL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "declinar", id: qId, c: 0 })
+        });
 
-function mostrarMensajeDespedida() {
-    document.getElementById('rsvp-status-ui').innerHTML = `
-        <div class="text-center p-8 border border-dashed border-gray-700">
-            <h2 class="text-[var(--oro)] font-bold text-lg mb-4 italic">¡GRACIAS POR AVISARNOS!</h2>
-            <p class="text-gray-400 text-xs leading-loose">
-                Lamentamos que no puedan estar físicamente con nosotros. <br>
-                Agradecemos mucho su atención al responder. ✨
-            </p>
-            <div class="w-10 h-[1px] bg-gray-800 mx-auto my-6"></div>
-            <p class="text-[8px] text-gray-600 uppercase tracking-widest">– Ariana & Martin –</p>
-        </div>
-    `;
-}
-    </script>
+        // Chat de Whatsapp de cortesía
+        const msgDec = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombreInvitado} no podremos acompañarlos a su boda. ¡Les deseamos lo mejor! 🥂`);
+        
+        mostrarMensajeDespedida();
+
+        setTimeout(() => {
+            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msgDec}`;
+        }, 1000);
+    }
+
+    // AUXILIAR: MOSTRAR QR
+    function confirmedUI(container, nom, can){
+        container.innerHTML = `
+            <div class="animate-zoom-in">
+                <h2 class='text-[#c5a059] mb-4 font-black tracking-widest'>¡TE ESPERAMOS!</h2>
+                <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
+                <p class='text-[10px] text-white font-bold uppercase'>PASE: ${can} LUGAR(ES)</p>
+                <p class='text-[8px] text-gray-500 mt-2 mt-4'>Toma captura de pantalla a tu QR <BR> es tu pase de entrada.</p>
+            </div>
+        `;
+        new QRCode(document.getElementById("qr"), {
+            text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, 
+            width: 140,
+            height: 140
+        });
+    }
+
+    // AUXILIAR: MENSAJE DESPEDIDA
+    function mostrarMensajeDespedida() {
+        document.getElementById('rsvp-status-ui').innerHTML = `
+            <div class="text-center p-8 border border-dashed border-gray-700 animate-fade-in">
+                <h2 class="text-[var(--oro)] font-bold text-lg mb-4 italic tracking-widest">¡GRACIAS POR AVISARNOS!</h2>
+                <p class="text-gray-400 text-xs leading-loose italic">
+                    Lamentamos que no puedan estar físicamente con nosotros. <br>
+                    Agradecemos mucho su atención al responder. ✨
+                </p>
+                <div class="w-10 h-[1px] bg-gray-800 mx-auto my-6"></div>
+                <p class="text-[10px] text-gray-600 uppercase tracking-[4px] font-bold">Resumen de nuestra boda</p>
+            </div>
+        `;
+    }
+
+    // AUXILIAR: BLOQUEO POR TIEMPO
+    function blockedUI(container, hnt){
+        container.innerHTML = `<h2 class='text-red-500 font-bold mb-4 uppercase tracking-tighter'>Confirmación Cerrada</h2><p class='text-[10px] leading-loose opacity-60 italic'>${hnt}</p>`;
+    }
+
+    // RELOJ
+    function iniciarReloj() {
+        const exp = new Date("Sep 12, 2026 17:30:00").getTime();
+        setInterval(() => {
+            const now = new Date().getTime();
+            const diffTime = exp - now;
+            document.getElementById('d').innerText = Math.floor(diffTime / 864e5);
+            document.getElementById('h').innerText = Math.floor((diffTime % 864e5) / 36e5);
+            document.getElementById('m').innerText = Math.floor((diffTime % 36e5) / 6e4);
+            document.getElementById('s').innerText = Math.floor((diffTime % 6e4) / 1000);
+        }, 1000);
+    }
+
+    // CALENDARIO
+    function configuraraCalEvent(){
+        const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍🇲🇽')}&dates=20260912T233000Z/20260913T090000Z&location=DIRECCION_DE_TU_SALON_AKI&sf=true&output=xml`;
+        document.getElementById('btn-gc').href = cal;
+    }
+</script>
 </body>
 </html>
