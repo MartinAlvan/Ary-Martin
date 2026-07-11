@@ -295,49 +295,55 @@
 
     // CARGAR DATOS Y CHECAR BLOQUEO
     async function configCheck() {
-    const now = new Date();
-    const limit = new Date("August 26, 2026 23:59:59");
-    const rsvpUI = document.getElementById('rsvp-status-ui');
+        const now = new Date();
+        const limit = new Date("August 26, 2026 23:59:59");
+        const rsvpUI = document.getElementById('rsvp-status-ui');
 
-    // 1. Verificar Fecha Máxima
-    if (now > limit) {
-        blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
-        return;
-    }
-
-    // 2. Verificar Memoria Local (Si ya confirmó antes)
-    const estadoLocal = localStorage.getItem('conf_' + qId);
-    if (estadoLocal) {
-        estadoLocal === "DECLINADO" ? mostrarMensajeDespedida() : confirmedUI(rsvpUI, "Invitado", estadoLocal);
-        return;
-    }
-
-    // 3. Si no hay ID en la URL, mostrar formulario genérico (Para que no se quede cargando)
-    if (!qId) {
-        showGenericForm(rsvpUI);
-        return;
-    }
-
-    // 4. Intentar conectar con Google
-    try {
-        const timeout = setTimeout(() => { throw new Error("Tiempo de espera agotado"); }, 5000); // 5 seg de margen
-        const response = await fetch(scURL + '?id=' + qId);
-        clearTimeout(timeout);
-        const inv = await response.json();
-
-        if (inv.error) {
-             showGenericForm(rsvpUI); // Si el ID no existe en el Excel
-             return;
+        // 1. Verificar Fecha Máxima
+        if (now > limit) {
+            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+            return;
         }
 
-        // Mostrar formulario con datos de Gmail/Excel
-        displayRsvpForm(rsvpUI, inv.nombre, inv.pases);
+        // 2. Verificar Memoria Local (Si ya confirmó antes)
+        const estadoLocal = localStorage.getItem('conf_' + qId);
+        if (estadoLocal) {
+            estadoLocal === "DECLINADO" ? mostrarMensajeDespedida() : confirmedUI(rsvpUI, "Invitado", estadoLocal);
+            return;
+        }
 
-    } catch (e) {
-        console.log("Error de conexión, usando formulario genérico...");
-        showGenericForm(rsvpUI); // Fallback: no bloqueamos al invitado
+        // 3. Si no hay ID en la URL, mostrar formulario genérico (Para que no se quede cargando)
+        if (!qId) {
+            showGenericForm(rsvpUI);
+            return;
+        }
+
+        // 4. Intentar conectar con Google
+        try {
+            const timeout = setTimeout(() => { throw new Error("Tiempo de espera agotado"); }, 5000); // 5 seg de margen
+            const response = await fetch(scURL + '?id=' + qId);
+            clearTimeout(timeout);
+            const inv = await response.json();
+
+            if (inv.error) {
+                console.log("Servidor mo lo encontro")
+                 showGenericForm(rsvpUI); // Si el ID no existe en el Excel
+                return;
+            }
+
+            if (inv.confirmado === "SI" || inv.confirmado === "no" || inv.confirmado === "NO") {
+                 inv.confirmado.toLowerCase() === "si" ? confirmedUI(rsvpUI, inv.nombre, "YA CONFIRMADO") : mostrarMensajeDespedida();
+                return;
+            }
+
+            // Mostrar formulario con datos de Gmail/Excel
+            displayRsvpForm(rsvpUI, inv.nombre, inv.pases);
+
+        } catch (e) {
+            console.log("Error de conexión, usando formulario genérico...");
+            showGenericForm(rsvpUI); // Fallback: no bloqueamos al invitado
+        }
     }
-}
 
     // FUNCIÓN PARA CONFIRMAR (RSVP)
     function registrarRsvp(nombreInvitado) {
@@ -443,15 +449,15 @@
     // Cascarón para cuando ya tenemos los datos
 function displayRsvpForm(container, nombre, pasesMax) {
     container.innerHTML = `
-        <h3 class="mb-4 text-[#c5a059] uppercase font-bold tracking-widest">HOLA ${nombre}</h3>
-        <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
-        <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4 outline-none font-bold">
-            ${[...Array(pasesMax)].map((_, i) => `<option value="${i+1}">${i+1} Invitado(s)</option>`).join('')}
+        <h3 class="mb-4 text-[#c5a059] uppercase font-bold tracking-widest leading-tight">HOLA ${nombre}</h3>
+        <label class="block text-[9px] mb-3 uppercase opacity-50 tracking-[3px]">Elija el número de asistentes:</label>
+        <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-6 outline-none font-bold">
+            ${[...Array(pasesMax)].map((_, i) => `<option value="${i+1}">${i+1} Asistente(s)</option>`).join('')}
         </select>
-        <button onclick="registrarRsvp('${nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-black w-full uppercase cursor-pointer hover:bg-white transition-all">Confirmar mi Asistencia</button>
-        <button onclick="declinarInvitacion('${nombre}')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition cursor-pointer">
-            Lamentablemente no podré asistir
-        </button>
+        <div class="space-y-4">
+            <button onclick="registrarRsvp('${nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-black w-full uppercase transition hover:bg-white tracking-widest cursor-pointer shadow-lg shadow-white/5">Confirmar Presencia</button>
+            <button onclick="declinarInvitacion('${nombre}')" class="w-full mt-2 bg-transparent border border-gray-700 p-2 text-gray-500 text-[9px] uppercase hover:text-red-500 transition cursor-pointer">Lamentablemente no podré asistir</button>
+        </div>
     `;
 }
 
