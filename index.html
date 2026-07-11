@@ -269,7 +269,7 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init();
-        const scURL = "https://script.google.com/macros/s/AKfycbwLFURapuxdqf0x3MoZR7COMoTgwMiZwftAiNw5wKnvoiwYIav9HWxO7Pg2lec0rIkgEQ/exec"; // <--- ACTUALIZA
+        const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec"; // <--- ACTUALIZA
         const audio = document.getElementById('cancion');
         const btm = document.getElementById('musicToggleBtn');
         const qId = new URLSearchParams(window.location.search).get('id');
@@ -318,7 +318,7 @@
                     </select>
                     <button onclick="registrarRsvp()" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
                     <!-- Botón Declinar Invitación -->
-                    <button onclick="declinarAsistencia()" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[9px] font-bold uppercase tracking-[3px] hover:border-red-500 hover:text-red-500 transition duration-500">
+                    <button onclick="declinarInvitacion()" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition shadow-none cursor-pointer">
                         Lamentablemente no podré asistir
                     </button>
                     <p class="text-[8px] mt-4 opacity-50">SI CONFIRMAS, NO PODRÁS CAMBIAR LA INFO DESPUÉS</p>
@@ -399,36 +399,51 @@
             document.getElementById('btn-gc').href = cal;
         }
         /* Función para quien no puede asistir */
-        function declinarAsistencia() {
-            const nombDeclinar = document.getElementById('nombre-input').value;
-    
-            // 1. Bloqueo manual local para que no regrese a confirmar
-            localStorage.setItem('conf_' + qId, "DECLINADO");
-            // 2. Avisar al Google Sheets (Acción declinar)
-            fetch(s_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify({ action: "declinar", id: qId, c: 0 })
-            });
+        /* Función Unificada para No Asistir */
+function declinarInvitacion() {
+    // 1. Identificar al invitado (Asegúrate que qId esté definido arriba en tu script)
+    if (!qId) {
+        alert("Error: No se detectó ID de invitado");
+        return;
+    }
 
-            // 3. WhatsApp de Notificación (Respetuoso y claro)
-            const textoDeclinar = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombDeclinar} no podremos acompañarlos físicamente en su boda. ¡Les deseamos lo mejor en su gran día! 🥂`);
-            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${textoDeclinar}`;
+    const nombreInvitadoConfirmado = document.getElementById('nombre-input').value || "Invitado";
 
-            // 4. Mostrar mensaje de despedida en la pantalla en lugar del formulario
-            const interfaceRSVP = document.getElementById('rsvp-interface');
-            interfaceRSVP.innerHTML = `
-            <div class="p-8 text-center animate-fade-in">
-                <div class="text-4xl mb-4">✨</div>
-                    <h2 class="text-[var(--oro)] font-bold text-lg mb-2">GRACIAS POR AVISARNOS</h2>
-                    <p class="text-gray-400 text-xs italic leading-loose">
-                        Lamentamos mucho que no puedas acompañarnos físicamente, <br>
-                        pero sabemos que tu cariño está con nosotros.
-                    </p>
-                <div class="w-10 h-[1px] bg-gray-700 mx-auto my-6"></div>
-                <p class="text-[8px] text-gray-600 uppercase tracking-widest">Atte: Ariana & Martin</p>
-            </div>
-        `;}
+    // 2. Bloqueo Local
+    localStorage.setItem('conf_' + qId, "DECLINADO");
+
+    // 3. Envío a Google Sheets (USANDO TUS VARIABLES)
+    fetch(scURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ 
+            action: "declinar", 
+            id: qId, 
+            c: 0 
+        })
+    });
+
+    // 4. Salida a WhatsApp (Opcional, pero recomendado para avisarte)
+    const msj = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombreInvitadoConfirmado} no podremos acompañarlos a su boda. ¡Les deseamos lo mejor! 🥂`);
+    window.location.href = `https://api.whatsapp.com/send?phone=521234567890&text=${msj}`;
+
+    // 5. Cambiar interfaz visual inmediatamente
+    mostrarMensajeDespedida();
+}
+
+function mostrarMensajeDespedida() {
+    document.getElementById('rsvp-status-ui').innerHTML = `
+        <div class="text-center p-8 border border-dashed border-gray-700">
+            <h2 class="text-[var(--oro)] font-bold text-lg mb-4 italic">¡GRACIAS POR AVISARNOS!</h2>
+            <p class="text-gray-400 text-xs leading-loose">
+                Lamentamos que no puedan estar físicamente con nosotros. <br>
+                Agradecemos mucho su atención al responder. ✨
+            </p>
+            <div class="w-10 h-[1px] bg-gray-800 mx-auto my-6"></div>
+            <p class="text-[8px] text-gray-600 uppercase tracking-widest">– Ariana & Martin –</p>
+        </div>
+    `;
+}
     </script>
 </body>
 </html>
