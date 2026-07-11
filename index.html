@@ -440,6 +440,36 @@
         const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍🇲🇽')}&dates=20260912T233000Z/20260913T090000Z&location=DIRECCION_DE_TU_SALON_AKI&sf=true&output=xml`;
         document.getElementById('btn-gc').href = cal;
     }
+    // Cascarón para cuando ya tenemos los datos
+function displayRsvpForm(container, nombre, pasesMax) {
+    container.innerHTML = `
+        <h3 class="mb-4 text-[#c5a059] uppercase font-bold tracking-widest">HOLA ${nombre}</h3>
+        <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
+        <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4 outline-none font-bold">
+            ${[...Array(pasesMax)].map((_, i) => `<option value="${i+1}">${i+1} Invitado(s)</option>`).join('')}
+        </select>
+        <button onclick="registrarRsvp('${nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-black w-full uppercase cursor-pointer hover:bg-white transition-all">Confirmar mi Asistencia</button>
+        <button onclick="declinarInvitacion('${nombre}')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition cursor-pointer">
+            Lamentablemente no podré asistir
+        </button>
+    `;
+}
+
+// Cascarón de emergencia si falla la conexión
+function showGenericForm(container) {
+    container.innerHTML = `
+        <h3 class="mb-4 text-[#c5a059] font-bold">CONFIRMACIÓN</h3>
+        <input type="text" id="n_backup" placeholder="ESCRIBE TU NOMBRE" class="bg-black text-white p-4 border border-gray-800 w-full mb-4 uppercase text-xs outline-none focus:border-[var(--oro)]">
+        <select id="p_final" class="bg-black text-white p-4 border border-gray-800 w-full mb-4 outline-none">
+            <option value="1">1 Persona</option>
+            <option value="2">2 Personas</option>
+            <option value="3">3 Personas</option>
+            <option value="4">4 Personas</option>
+        </select>
+        <button onclick="registrarRsvp(document.getElementById('n_backup').value || 'Invitado')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
+        <button onclick="declinarInvitacion(document.getElementById('n_backup').value || 'Invitado')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-[10px] uppercase">No podré asistir</button>
+    `;
+}
 </script>
 </body>
 </html>
