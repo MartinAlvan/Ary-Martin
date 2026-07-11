@@ -317,6 +317,10 @@
                         ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Invitado</option>`).join('')}
                     </select>
                     <button onclick="registrarRsvp()" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
+                    <!-- Botón Declinar Invitación -->
+                    <button onclick="declinarAsistencia()" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[9px] font-bold uppercase tracking-[3px] hover:border-red-500 hover:text-red-500 transition duration-500">
+                        Lamentablemente no podré asistir
+                    </button>
                     <p class="text-[8px] mt-4 opacity-50">SI CONFIRMAS, NO PODRÁS CAMBIAR LA INFO DESPUÉS</p>
                 `;
             } catch(e) { rsvpUI.innerHTML="Acceso restringido."; }
@@ -394,6 +398,37 @@
             const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍')}&dates=20260912T233000Z/20260913T090000Z&location=SALÓN_DIRECCIÓN_FALTAR_AQUI&sf=true&output=xml`;
             document.getElementById('btn-gc').href = cal;
         }
+        /* Función para quien no puede asistir */
+        function declinarAsistencia() {
+            const nombDeclinar = document.getElementById('nombre-input').value;
+    
+            // 1. Bloqueo manual local para que no regrese a confirmar
+            localStorage.setItem('conf_' + invitID, "DECLINADO");
+            // 2. Avisar al Google Sheets (Acción declinar)
+            fetch(s_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({ action: "declinar", id: invitID, c: 0 })
+            });
+
+            // 3. WhatsApp de Notificación (Respetuoso y claro)
+            const textoDeclinar = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombDeclinar} no podremos acompañarlos físicamente en su boda. ¡Les deseamos lo mejor en su gran día! 🥂`);
+            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${textoDeclinar}`;
+
+            // 4. Mostrar mensaje de despedida en la pantalla en lugar del formulario
+            const interfaceRSVP = document.getElementById('rsvp-interface');
+            interfaceRSVP.innerHTML = `
+            <div class="p-8 text-center animate-fade-in">
+                <div class="text-4xl mb-4">✨</div>
+                    <h2 class="text-[var(--oro)] font-bold text-lg mb-2">GRACIAS POR AVISARNOS</h2>
+                    <p class="text-gray-400 text-xs italic leading-loose">
+                        Lamentamos mucho que no puedas acompañarnos físicamente, <br>
+                        pero sabemos que tu cariño está con nosotros.
+                    </p>
+                <div class="w-10 h-[1px] bg-gray-700 mx-auto my-6"></div>
+                <p class="text-[8px] text-gray-600 uppercase tracking-widest">Atte: Ariana & Martin</p>
+            </div>
+        `;}
     </script>
 </body>
 </html>
