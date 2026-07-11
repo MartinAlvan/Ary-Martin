@@ -347,13 +347,13 @@
             const linkFinal = `https://api.whatsapp.com/send?phone=525615273394&text=${textoCodificado}`;
 
             // 1. Guardar localmente
-            localStorage.setItem('ya_confirmo_' + miInvitadoId, cantidadSeleccionada);
+            localStorage.setItem('ya_confirmo_' + qId, cantidadSeleccionada);
 
             // 2. Avisar al Sheets (sin esperar el resultado para no detener el proceso)
             fetch(scURL, {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify({ action: "rsvp", id: miInvitadoId, asistentes: cantidadSeleccionada })
+                body: JSON.stringify({ action: "rsvp", id: qId, asistentes: cantidadSeleccionada })
             });
 
             // 3. LA CLAVE: Cambiar de página inmediatamente
@@ -403,12 +403,12 @@
             const nombDeclinar = document.getElementById('nombre-input').value;
     
             // 1. Bloqueo manual local para que no regrese a confirmar
-            localStorage.setItem('conf_' + invitID, "DECLINADO");
+            localStorage.setItem('conf_' + qId, "DECLINADO");
             // 2. Avisar al Google Sheets (Acción declinar)
             fetch(s_URL, {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify({ action: "declinar", id: invitID, c: 0 })
+                body: JSON.stringify({ action: "declinar", id: qId, c: 0 })
             });
 
             // 3. WhatsApp de Notificación (Respetuoso y claro)
