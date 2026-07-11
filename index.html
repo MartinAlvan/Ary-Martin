@@ -267,19 +267,20 @@
 
     <!-- Script de Lógica -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init();
-    
-    // VARIABLES GLOBALES
-    const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec";
+
+    // 1. CONFIGURACIÓN GLOBAL
+    const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec"; 
+    const qId = new URLSearchParams(window.location.search).get('id');
     const audio = document.getElementById('cancion');
     const btm = document.getElementById('musicToggleBtn');
-    const qId = new URLSearchParams(window.location.search).get('id');
 
-    // CONTROL DE MÚSICA
+    // MÚSICA
     btm.onclick = () => audio.paused ? (audio.play(), btm.innerText='ON') : (audio.pause(), btm.innerText='OFF');
 
-    // FUNCIÓN DE APERTURA (FLUJO INICIAL)
+    // ABRIR SOBRE
     function abrirTodo(){
         audio.play().then(() => btm.innerText='ON').catch(() => btm.innerText='OFF');
         document.getElementById('pantalla-sobre').style.opacity = '0';
@@ -293,189 +294,154 @@
         }, 800);
     }
 
-    // CARGAR DATOS Y CHECAR BLOQUEO
+    // 2. LOGICA DE CARGA (LA QUE TE FALTABA)
     async function configCheck() {
         const now = new Date();
-        const limit = new Date("August 26, 2026 23:59:59");
+        const limit = new Date("August 13, 2026 23:59:59");
         const rsvpUI = document.getElementById('rsvp-status-ui');
 
-        // 1. Verificar Fecha Máxima
         if (now > limit) {
-            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos resumen del evento.");
             return;
         }
 
-        // 2. Verificar Memoria Local (Si ya confirmó antes)
+        // Si ya confirmó en este celular antes
         const estadoLocal = localStorage.getItem('conf_' + qId);
         if (estadoLocal) {
             estadoLocal === "DECLINADO" ? mostrarMensajeDespedida() : confirmedUI(rsvpUI, "Invitado", estadoLocal);
             return;
         }
 
-        // 3. Si no hay ID en la URL, mostrar formulario genérico (Para que no se quede cargando)
+        // Si entran sin ID de invitado (?id=...)
         if (!qId) {
             showGenericForm(rsvpUI);
             return;
         }
 
-        // 4. Intentar conectar con Google
+        // LLAMADA AL GOOGLE SHEETS
         try {
-            const timeout = setTimeout(() => { throw new Error("Tiempo de espera agotado"); }, 5000); // 5 seg de margen
             const response = await fetch(scURL + '?id=' + qId);
-            clearTimeout(timeout);
             const inv = await response.json();
 
             if (inv.error) {
-                console.log("Servidor mo lo encontro")
-                 showGenericForm(rsvpUI); // Si el ID no existe en el Excel
+                showGenericForm(rsvpUI);
                 return;
             }
 
-            if (inv.confirmado === "SI" || inv.confirmado === "no" || inv.confirmado === "NO") {
-                 inv.confirmado.toLowerCase() === "si" ? confirmedUI(rsvpUI, inv.nombre, "YA CONFIRMADO") : mostrarMensajeDespedida();
+            // Si en el Excel ya aparece como "SI" o "NO"
+            if (inv.confirmado === "SI" || inv.confirmado === "NO") {
+                inv.confirmado === "SI" ? confirmedUI(rsvpUI, inv.nombre, "Invitado") : mostrarMensajeDespedida();
                 return;
             }
 
-            // Mostrar formulario con datos de Gmail/Excel
+            // MOSTRAR FORMULARIO PERSONALIZADO
             displayRsvpForm(rsvpUI, inv.nombre, inv.pases);
 
         } catch (e) {
-            console.log("Error de conexión, usando formulario genérico...");
-            showGenericForm(rsvpUI); // Fallback: no bloqueamos al invitado
+            showGenericForm(rsvpUI);
         }
     }
 
-    // FUNCIÓN PARA CONFIRMAR (RSVP)
-    function registrarRsvp(nombreInvitado) {
-        const cantidad = document.getElementById('p_final').value;
-        const msg = encodeURIComponent(`¡Hola Ariana y Martin! 👋 \nConfirmo mi asistencia para: ${nombreInvitado} con ${cantidad} lugar(es). \n¡Nos vemos pronto! 🇲🇽💍`);
-        
-        // Bloqueo Local
-        localStorage.setItem('conf_' + qId, cantidad);
-
-        // Envío al Servidor (Sheets)
-        fetch(scURL, {
-            method: "GET",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "rsvp", id: qId, asistentes: cantidad })
-        });
-
-        // Cambio visual y salida
-        const rsvpUI = document.getElementById('rsvp-status-ui');
-        confirmedUI(rsvpUI, nombreInvitado, cantidad);
-        
-        setTimeout(() => {
-            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msg}`;
-        }, 1000);
+    // DISPLEGAR FORMULARIO CON DATOS DEL EXCEL
+    function displayRsvpForm(container, nombre, pasesMax) {
+        container.innerHTML = `
+            <div data-aos="zoom-in">
+                <h3 class="mb-4 text-[#c5a059] uppercase font-bold tracking-widest text-lg">HOLA ${nombre}</h3>
+                <p class="text-[10px] mb-4 opacity-70 uppercase tracking-tighter">Hemos reservado ${pasesMax} lugar(es) para ti:</p>
+                <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4 outline-none font-bold">
+                    ${[...Array(pasesMax)].map((_, i) => `<option value="${i+1}">${i+1} Asistente(s)</option>`).join('')}
+                </select>
+                <button onclick="registrarRsvp('${nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-black w-full uppercase">Confirmar Mi Asistencia</button>
+                <button onclick="declinarInvitacion('${nombre}')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase">No podré asistir</button>
+            </div>
+        `;
     }
 
-    // FUNCIÓN PARA DECLINAR
-    function declinarInvitacion(nombreInvitado) {
-        // Bloqueo Local
+    // FORMULARIO GENERICO SI FALLA EL LINK
+    function showGenericForm(container) {
+        container.innerHTML = `
+            <h3 class="mb-4 text-[#c5a059] font-bold">CONFIRMACIÓN</h3>
+            <input type="text" id="resp_nom" placeholder="Tu nombre" class="w-full bg-black border border-gray-800 p-3 mb-4 text-white uppercase text-xs">
+            <select id="p_final" class="bg-black text-white p-3 border border-gray-800 w-full mb-4">
+                <option value="1">1 Persona</option><option value="2">2 Personas</option>
+            </select>
+            <button onclick="registrarRsvp(document.getElementById('resp_nom').value)" class="bg-[var(--oro)] p-4 text-black font-bold w-full uppercase text-[10px]">Confirmar My Asistencia</button>
+        `;
+    }
+
+    // 3. FUNCIONES DE ACCIÓN (CONFIRMAR / DECLINAR)
+    async function registrarRsvp(n) {
+        const can = document.getElementById('p_final').value;
+        localStorage.setItem('conf_' + qId, can);
+        
+        fetch(scURL, { 
+            method: "POST", 
+            mode: "no-cors", 
+            body: JSON.stringify({ action: "rsvp", id: qId, asistentes: can }) 
+        });
+
+        const msgWA = encodeURIComponent(`Hola Ariana y Martin! \nConfirmamos asistencia para ${n} (${can} pases). \nEstamos muy emocionados! ✨💍`);
+        window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msgWA}`;
+        
+        confirmedUI(document.getElementById('rsvp-status-ui'), n, can);
+    }
+
+    function declinarInvitacion(n) {
         localStorage.setItem('conf_' + qId, "DECLINADO");
-
-        // Envío al Servidor (Avisa que es no asistirá)
-        fetch(scURL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "declinar", id: qId, c: 0 })
+        fetch(scURL, { 
+            method: "POST", 
+            mode: "no-cors", 
+            body: JSON.stringify({ action: "declinar", id: qId, c: 0 }) 
         });
 
-        // Chat de Whatsapp de cortesía
-        const msgDec = encodeURIComponent(`Hola Ariana y Martin. 👋 Lamentablemente confirmamos que ${nombreInvitado} no podremos acompañarlos a su boda. ¡Les deseamos lo mejor! 🥂`);
-        
+        const msgD = encodeURIComponent(`Hola Ari y Martin. Lamentamos informar que ${n} no podremos acompañarlos físicamente. ¡Nuestros mejores deseos! 🥂`);
         mostrarMensajeDespedida();
-
-        setTimeout(() => {
-            window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msgDec}`;
-        }, 1000);
+        setTimeout(() => { window.location.href = `https://api.whatsapp.com/send?phone=525615273394&text=${msgD}`; }, 1200);
     }
 
-    // AUXILIAR: MOSTRAR QR
+    // CRITERIOS VISUALES (QR, RELOJ, CALENDARIO)
     function confirmedUI(container, nom, can){
         container.innerHTML = `
             <div class="animate-zoom-in">
-                <h2 class='text-[#c5a059] mb-4 font-black tracking-widest'>¡TE ESPERAMOS!</h2>
-                <div id='qr' class='inline-block bg-white p-2 mb-2'></div>
-                <p class='text-[10px] text-white font-bold uppercase'>PASE: ${can} LUGAR(ES)</p>
-                <p class='text-[8px] text-gray-500 mt-2 mt-4'>Toma captura de pantalla a tu QR <BR> es tu pase de entrada.</p>
+                <h2 class='text-[#c5a059] mb-4 font-black tracking-widest'>¡AHÍ NOS VEMOS!</h2>
+                <div id='qr' class='inline-block bg-white p-3 mb-2 rounded-lg'></div>
+                <p class='text-[10px] text-white font-bold uppercase'>PASE DIGITAL (${can} LUGAR/ES)</p>
+                <p class='text-[7px] text-gray-500 mt-4 uppercase font-bold tracking-[2px] underline decoration-[var(--oro)] underline-offset-4'>Captura este código para el salón</p>
             </div>
         `;
-        new QRCode(document.getElementById("qr"), {
+        const qrc = new QRCode(document.getElementById("qr"), {
             text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, 
-            width: 140,
-            height: 140
+            width: 140, height: 140, colorDark : "#000000", colorLight : "#ffffff"
         });
     }
 
-    // AUXILIAR: MENSAJE DESPEDIDA
     function mostrarMensajeDespedida() {
         document.getElementById('rsvp-status-ui').innerHTML = `
-            <div class="text-center p-8 border border-dashed border-gray-700 animate-fade-in">
-                <h2 class="text-[var(--oro)] font-bold text-lg mb-4 italic tracking-widest">¡GRACIAS POR AVISARNOS!</h2>
-                <p class="text-gray-400 text-xs leading-loose italic">
-                    Lamentamos que no puedan estar físicamente con nosotros. <br>
-                    Agradecemos mucho su atención al responder. ✨
-                </p>
-                <div class="w-10 h-[1px] bg-gray-800 mx-auto my-6"></div>
-                <p class="text-[10px] text-gray-600 uppercase tracking-[4px] font-bold">Resumen de nuestra boda</p>
+            <div class="text-center p-6 border border-dashed border-gray-700">
+                <p class="text-[var(--oro)] italic text-sm">Lamentamos mucho que no puedan asistir.</p>
+                <h3 class="text-white text-xs mt-2 uppercase">Agradecemos su respuesta.</h3>
             </div>
         `;
     }
 
-    // AUXILIAR: BLOQUEO POR TIEMPO
-    function blockedUI(container, hnt){
-        container.innerHTML = `<h2 class='text-red-500 font-bold mb-4 uppercase tracking-tighter'>Confirmación Cerrada</h2><p class='text-[10px] leading-loose opacity-60 italic'>${hnt}</p>`;
+    function blockedUI(container, text){
+       container.innerHTML = `<p class='text-red-500 uppercase font-black text-xs'>${text}</p>`;
     }
 
-    // RELOJ
     function iniciarReloj() {
-        const exp = new Date("Sep 12, 2026 17:30:00").getTime();
         setInterval(() => {
-            const now = new Date().getTime();
-            const diffTime = exp - now;
-            document.getElementById('d').innerText = Math.floor(diffTime / 864e5);
-            document.getElementById('h').innerText = Math.floor((diffTime % 864e5) / 36e5);
-            document.getElementById('m').innerText = Math.floor((diffTime % 36e5) / 6e4);
-            document.getElementById('s').innerText = Math.floor((diffTime % 6e4) / 1000);
+            const d = new Date("Sep 12, 2026 17:30:00").getTime() - new Date().getTime();
+            document.getElementById('d').innerText = Math.floor(d / 864e5);
+            document.getElementById('h').innerText = Math.floor((d % 864e5) / 36e5);
+            document.getElementById('m').innerText = Math.floor((d % 36e5) / 6e4);
+            document.getElementById('s').innerText = Math.floor((d % 6e4) / 1000);
         }, 1000);
     }
 
-    // CALENDARIO
     function configuraraCalEvent(){
-        const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍🇲🇽')}&dates=20260912T233000Z/20260913T090000Z&location=DIRECCION_DE_TU_SALON_AKI&sf=true&output=xml`;
+        const cal = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Boda Ariana & Martin 💍')}&dates=20260912T233000Z/20260913T090000Z&location=CDMX&sf=true@output=xml`;
         document.getElementById('btn-gc').href = cal;
     }
-    // Cascarón para cuando ya tenemos los datos
-function displayRsvpForm(container, nombre, pasesMax) {
-    container.innerHTML = `
-        <h3 class="mb-4 text-[#c5a059] uppercase font-bold tracking-widest leading-tight">HOLA ${nombre}</h3>
-        <label class="block text-[9px] mb-3 uppercase opacity-50 tracking-[3px]">Elija el número de asistentes:</label>
-        <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-6 outline-none font-bold">
-            ${[...Array(pasesMax)].map((_, i) => `<option value="${i+1}">${i+1} Asistente(s)</option>`).join('')}
-        </select>
-        <div class="space-y-4">
-            <button onclick="registrarRsvp('${nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-black w-full uppercase transition hover:bg-white tracking-widest cursor-pointer shadow-lg shadow-white/5">Confirmar Presencia</button>
-            <button onclick="declinarInvitacion('${nombre}')" class="w-full mt-2 bg-transparent border border-gray-700 p-2 text-gray-500 text-[9px] uppercase hover:text-red-500 transition cursor-pointer">Lamentablemente no podré asistir</button>
-        </div>
-    `;
-}
-
-// Cascarón de emergencia si falla la conexión
-function showGenericForm(container) {
-    container.innerHTML = `
-        <h3 class="mb-4 text-[#c5a059] font-bold">CONFIRMACIÓN</h3>
-        <input type="text" id="n_backup" placeholder="ESCRIBE TU NOMBRE" class="bg-black text-white p-4 border border-gray-800 w-full mb-4 uppercase text-xs outline-none focus:border-[var(--oro)]">
-        <select id="p_final" class="bg-black text-white p-4 border border-gray-800 w-full mb-4 outline-none">
-            <option value="1">1 Persona</option>
-            <option value="2">2 Personas</option>
-            <option value="3">3 Personas</option>
-            <option value="4">4 Personas</option>
-        </select>
-        <button onclick="registrarRsvp(document.getElementById('n_backup').value || 'Invitado')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
-        <button onclick="declinarInvitacion(document.getElementById('n_backup').value || 'Invitado')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-[10px] uppercase">No podré asistir</button>
-    `;
-}
 </script>
 </body>
 </html>
