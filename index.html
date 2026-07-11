@@ -294,53 +294,50 @@
     }
 
     // CARGAR DATOS Y CHECAR BLOQUEO
-    async function configCheck(){
-        const now = new Date();
-        const limit = new Date("August 13, 2026 23:59:59");
-        const rsvpUI = document.getElementById('rsvp-status-ui');
+    async function configCheck() {
+    const now = new Date();
+    const limit = new Date("August 13, 2026 23:59:59");
+    const rsvpUI = document.getElementById('rsvp-status-ui');
 
-        if (now > limit) {
-            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
-            return;
-        }
-
-        // VERIFICAR SI YA CONFIRMÓ O DECLINÓ ANTES
-        const estadoLocal = localStorage.getItem('conf_' + qId);
-        if (estadoLocal) {
-            if(estadoLocal === "DECLINADO") {
-                mostrarMensajeDespedida();
-            } else {
-                // Si confirmó, necesitamos recuperar su nombre desde la base o poner uno genérico para el QR
-                confirmedUI(rsvpUI, "Invitado", estadoLocal); 
-            }
-            return;
-        }
-
-        try {
-            const response = await fetch(scURL + '?id=' + qId);
-            const inv = await response.json();
-
-            if (inv.confirmado === "SI") {
-                confirmedUI(rsvpUI, inv.nombre, inv.asistentes || inv.pases);
-                return;
-            }
-
-            rsvpUI.innerHTML = `
-                <h3 class="mb-4 text-[#c5a059]">HOLA ${inv.nombre || "INVITADO"}</h3>
-                <label class="block text-[10px] mb-2 uppercase opacity-40">Reservamos pases para: </label>
-                <select id="p_final" class="bg-black text-[var(--oro)] p-4 border border-[var(--oro)] w-full mb-4 outline-none">
-                    ${[...Array(inv.pases)].map((_, i) => `<option value="${i+1}">${i+1} Invitado(s)</option>`).join('')}
-                </select>
-                <button onclick="registrarRsvp('${inv.nombre}')" class="bg-[var(--oro)] p-4 text-black text-[10px] font-bold w-full uppercase">Confirmar mi Asistencia</button>
-                <button onclick="declinarInvitacion('${inv.nombre}')" class="w-full mt-4 bg-transparent border border-gray-600 p-2 text-gray-500 text-[10px] uppercase hover:text-red-500 transition cursor-pointer">
-                    Lamentablemente no podré asistir
-                </button>
-                <p class="text-[8px] mt-4 opacity-50 uppercase tracking-widest">Si confirmas, no podrás cambiar la información después</p>
-            `;
-        } catch(e) { 
-            rsvpUI.innerHTML="<p class='text-xs opacity-50'>Cargando menú de invitados...</p>"; 
-        }
+    // 1. Verificar Fecha Máxima
+    if (now > limit) {
+        blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos fotos de todo lo que nos faltaste.");
+        return;
     }
+
+    // 2. Verificar Memoria Local (Si ya confirmó antes)
+    const estadoLocal = localStorage.getItem('conf_' + qId);
+    if (estadoLocal) {
+        estadoLocal === "DECLINADO" ? mostrarMensajeDespedida() : confirmedUI(rsvpUI, "Invitado", estadoLocal);
+        return;
+    }
+
+    // 3. Si no hay ID en la URL, mostrar formulario genérico (Para que no se quede cargando)
+    if (!qId) {
+        showGenericForm(rsvpUI);
+        return;
+    }
+
+    // 4. Intentar conectar con Google
+    try {
+        const timeout = setTimeout(() => { throw new Error("Tiempo de espera agotado"); }, 5000); // 5 seg de margen
+        const response = await fetch(scURL + '?id=' + qId);
+        clearTimeout(timeout);
+        const inv = await response.json();
+
+        if (inv.error) {
+             showGenericForm(rsvpUI); // Si el ID no existe en el Excel
+             return;
+        }
+
+        // Mostrar formulario con datos de Gmail/Excel
+        displayRsvpForm(rsvpUI, inv.nombre, inv.pases);
+
+    } catch (e) {
+        console.log("Error de conexión, usando formulario genérico...");
+        showGenericForm(rsvpUI); // Fallback: no bloqueamos al invitado
+    }
+}
 
     // FUNCIÓN PARA CONFIRMAR (RSVP)
     function registrarRsvp(nombreInvitado) {
