@@ -272,7 +272,7 @@
     AOS.init();
 
     // 1. CONFIGURACIÓN GLOBAL
-    const scURL = "https://script.google.com/macros/s/AKfycbz_0kR-Iq67-A83Zub5lh7VirM5Wtf46GszMI3MH5wJpToXBAw2nF97aotwvDlnE-OKIw/exec"; 
+    const scURL = "https://script.google.com/macros/s/AKfycbwdHJ-UunanY5UXBs0Md4BAUlDAOU_S_hKGho5OfOF65evMZ99CJsbO2Ji9jiCoWl6vMA/exec"; 
     const qId = new URLSearchParams(window.location.search).get('id');
     const audio = document.getElementById('cancion');
     const btm = document.getElementById('musicToggleBtn');
@@ -296,51 +296,42 @@
 
     // 2. LOGICA DE CARGA (LA QUE TE FALTABA)
     async function configCheck() {
-        const now = new Date();
-        const limit = new Date("August 13, 2026 23:59:59");
-        const rsvpUI = document.getElementById('rsvp-status-ui');
+    const rsvpUI = document.getElementById('rsvp-status-ui');
+    
+    // Si no hay ID, no bajamos datos
+    if (!qId) { showGenericForm(rsvpUI); return; }
 
-        if (now > limit) {
-            blockedUI(rsvpUI, "Lamentamos que el tiempo caducó... Te mandaremos resumen del evento.");
+    try {
+        const response = await fetch(scURL + '?id=' + qId);
+        const inv = await response.json();
+
+        // AQUÍ ESTÁ LA MAGIA CORRECTORA:
+        if (inv.confirmado === "SI") {
+            // Mandamos los datos reales del Google Sheet (inv.nombre e inv.asistentesConfirmados)
+            confirmedUI(rsvpUI, inv.nombre, inv.asistentesConfirmados);
             return;
         }
 
-        // Si ya confirmó en este celular antes
-        const estadoLocal = localStorage.getItem('conf_' + qId);
-        if (estadoLocal) {
-            estadoLocal === "DECLINADO" ? mostrarMensajeDespedida() : confirmedUI(rsvpUI, "Invitado", estadoLocal);
+        // Si declinó en el excel (Opcional)
+        if (inv.confirmado === "NO") {
+            mostrarMensajeDespedida();
             return;
         }
 
-        // Si entran sin ID de invitado (?id=...)
-        if (!qId) {
-            showGenericForm(rsvpUI);
-            return;
-        }
+        // Si no ha confirmado, mostrar formulario para llenar (usando inv.pasesTotales)
+        displayRsvpForm(rsvpUI, inv.nombre, inv.pasesTotales);
 
-        // LLAMADA AL GOOGLE SHEETS
-        try {
-            const response = await fetch(scURL + '?id=' + qId);
-            const inv = await response.json();
-
-            if (inv.error) {
-                showGenericForm(rsvpUI);
-                return;
-            }
-
-            // Si en el Excel ya aparece como "SI" o "NO"
-            if (inv.confirmado === "SI" || inv.confirmado === "NO") {
-                inv.confirmado === "SI" ? confirmedUI(rsvpUI, inv.nombre, "Invitado") : mostrarMensajeDespedida();
-                return;
-            }
-
-            // MOSTRAR FORMULARIO PERSONALIZADO
-            displayRsvpForm(rsvpUI, inv.nombre, inv.pases);
-
-        } catch (e) {
+    } catch (e) {
+        // En caso de que falle el fetch cargamos lo que el telefono tenga guardado
+        const backup = localStorage.getItem('confData_' + qId);
+        if (backup) {
+            const b = JSON.parse(backup);
+            confirmedUI(rsvpUI, b.nombre, b.pases);
+        } else {
             showGenericForm(rsvpUI);
         }
     }
+}
 
     // DISPLEGAR FORMULARIO CON DATOS DEL EXCEL
     function displayRsvpForm(container, nombre, pasesMax) {
@@ -400,20 +391,47 @@
     }
 
     // CRITERIOS VISUALES (QR, RELOJ, CALENDARIO)
-    function confirmedUI(container, nom, can){
-        container.innerHTML = `
-            <div class="animate-zoom-in">
-                <h2 class='text-[#c5a059] mb-4 font-black tracking-widest'>¡AHÍ NOS VEMOS!</h2>
-                <div id='qr' class='inline-block bg-white p-3 mb-2 rounded-lg'></div>
-                <p class='text-[10px] text-white font-bold uppercase'>PASE DIGITAL (${can} LUGAR/ES)</p>
-                <p class='text-[7px] text-gray-500 mt-4 uppercase font-bold tracking-[2px] underline decoration-[var(--oro)] underline-offset-4'>Captura este código para el salón</p>
-            </div>
-        `;
-        const qrc = new QRCode(document.getElementById("qr"), {
-            text: `BODA-ACC-ID:${qId}-ST:${nom}-C:${can}`, 
-            width: 140, height: 140, colorDark : "#000000", colorLight : "#ffffff"
-        });
-    }
+    function confirmedUI(container, nomInvi, cantFinal) {
+    // 1. Limpieza de datos: si falta el nombre o número por error, ponemos valores seguros
+    const nombreLimpio = (nomInvi === "undefined" || !nomInvi) ? "Invitado" : nomInvi;
+    const pasesLimpios = (cantFinal === "undefined" || !cantFinal) ? "1" : cantFinal;
+
+    // 2. Inyectamos la estructura visual
+    container.innerHTML = `
+        <div class="animate-zoom-in text-center">
+            <h2 class='text-[#c5a059] mb-4 font-black tracking-widest'>¡AHÍ NOS VEMOS!</h2>
+            
+            <div id='qr' class='inline-block bg-white p-3 mb-2 rounded-lg border-2 border-[var(--oro)] shadow-xl'></div>
+            
+            <p class='text-[10px] text-white font-bold uppercase'>PASE: ${nombreLimpio}</p>
+            <p class='text-[14px] text-[var(--oro)] font-black uppercase mt-1'>(${pasesLimpios} LUGARES CONFIRMADOS)</p>
+            
+            <p class='text-[7px] text-gray-500 mt-4 uppercase font-bold tracking-[2px] underline decoration-[var(--oro)] dandy-und underline-offset-4 cursor-default'>
+                CAPTURA ESTE CÓDIGO PARA MOSTRAR EN PUERTA
+            </p>
+        </div>
+    `;
+
+    // 3. EL TRUCO DEL TIME-OUT (300ms): 
+    // Esperamos un suspiro para que el navegador cree el div "qr" antes de dibujar adentro
+    setTimeout(() => {
+        const qrContainer = document.getElementById("qr");
+        if (qrContainer) {
+            // Limpiamos contenido previo por seguridad antes de generar
+            qrContainer.innerHTML = ""; 
+            
+            new QRCode(qrContainer, {
+                /* IMPORTANTE: ESTA CADENA DE TEXTO ES LA QUE LEE TU ESCANER.HTML */
+                text: `BODA-ACC-ID:${qId}-ST:${nombreLimpio}-C:${pasesLimpios}`,
+                width: 155,
+                height: 155,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H // Nivel alto de corrección por si la pantalla está rayada
+            });
+        }
+    }, 300);
+}
 
     function mostrarMensajeDespedida() {
         document.getElementById('rsvp-status-ui').innerHTML = `
