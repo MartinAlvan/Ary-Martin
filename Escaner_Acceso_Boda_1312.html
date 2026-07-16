@@ -3,114 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Boda - Ariana & Martin</title>
+    <title>Acceso Staff Boda - Ariana & Martin</title>
+    <!-- Libreria del Scanner -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #reader__scan_region video { object-fit: cover !important; }
-        .btn-gold { background: #c5a059; color: black; font-weight: bold; border-radius: 8px; padding: 15px 30px; text-transform: uppercase; letter-spacing: 2px; }
+        video { border-radius: 20px !important; }
+        .green-ring { border-color: #22c55e !important; box-shadow: 0 0 20px rgba(34, 18, 94, 0.4); }
     </style>
 </head>
-<body class="bg-[#0a0a0a] text-white flex flex-col items-center justify-center min-h-screen p-6">
+<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen p-6 font-sans">
 
-    <!-- PANTALLA ANTES DE ACTIVAR -->
-    <div id="inicio-escaneo" class="text-center">
-        <div class="mb-10">
-            <h1 class="text-[#c5a059] text-3xl font-bold mb-2">CONTROL INGRESO</h1>
-            <p class="text-xs opacity-50 uppercase tracking-[4px]">Noche Mexicana</p>
-        </div>
-        
-        <button onclick="pedirPermiso()" id="btn-permiso" class="btn-gold shadow-lg shadow-[#c5a059]/30 italic">
-            📷 ACTIVAR CÁMARA
+    <!-- BOTON INICIAL (Necesario por seguridad del navegador) -->
+    <div id="pantalla-inicio" class="text-center">
+        <h1 class="text-[#c5a059] text-2xl font-bold mb-8 uppercase tracking-widest">Escaner de Acceso</h1>
+        <button onclick="activarLector()" class="bg-[#c5a059] text-black px-10 py-5 rounded-full font-black uppercase text-xs tracking-widest shadow-lg">
+            📷 Abrir Cámara
         </button>
-        
-        <p class="mt-6 text-[10px] opacity-40 max-w-[250px] leading-relaxed">
-            Al tocar el botón deberá seleccionar "Permitir" en el mensaje que enviará el navegador.
-        </p>
     </div>
 
-    <!-- RECUADRO DEL ESCÁNER -->
-    <div id="reader" class="hidden w-full max-w-[400px] border-4 border-[#c5a059] rounded-2xl overflow-hidden"></div>
+    <!-- RECUADRO DONDE SE VE LA CÁMARA (Oculto al inicio) -->
+    <div id="reader" class="hidden w-full max-w-[380px] overflow-hidden" 
+         style="border: 2px solid #555; border-radius: 20px;"></div>
 
-    <!-- PANEL DE RESULTADO -->
-    <div id="status-panel" class="hidden mt-8 w-full max-w-sm p-8 rounded-2xl border-4 text-center bg-[#111] shadow-2xl">
-        <h2 id="guest-name" class="text-3xl font-bold mb-2"></h2>
-        <div id="guest-paxes" class="text-8xl font-black text-[#c5a059] my-6"></div>
+    <!-- PANEL DE RESULTADO (Tu diseño enriquecido) -->
+    <div id="status-panel" class="hidden w-full max-w-sm p-8 rounded-2xl border-4 text-center bg-[#111] shadow-2xl animate-fade-in">
+        <h2 id="guest-name" class="text-3xl font-bold mb-2 uppercase text-gray-200"></h2>
+        
+        <!-- Aquí saldrá la cantidad gigante -->
+        <div id="guest-paxes" class="text-9xl font-black text-[#c5a059] my-4 leading-none"></div>
+        
         <p class="text-sm uppercase tracking-widest opacity-50 mb-10">Pases Autorizados</p>
-        <button onclick="window.location.reload()" class="w-full bg-white text-black py-5 rounded-xl font-black text-xs uppercase tracking-widest">SIGUIENTE ACCESO</button>
+        
+        <button onclick="window.location.reload()" 
+                class="w-full bg-white text-black py-5 rounded-xl font-black text-xs uppercase tracking-[4px]">
+                SIGUIENTE ACCESO
+        </button>
     </div>
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
 
-        async function pedirPermiso() {
-            document.getElementById('inicio-escaneo').classList.add('hidden');
+        function activarLector() {
+            document.getElementById('pantalla-inicio').classList.add('hidden');
             document.getElementById('reader').classList.remove('hidden');
 
-            const config = {
-                fps: 15,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            };
+            const config = { fps: 15, qrbox: { width: 250, height: 250 } };
 
-            // Intentar iniciar la cámara
-            html5QrCode.start(
-                { facingMode: "environment" }, // Forzar cámara trasera
-                config, 
-                onScanSuccess
-            ).catch(err => {
-                // Si hay error (bloqueo por usuario o no detectada)
-                alert("Error al abrir cámara. Asegúrese de dar 'PERMITIR'.");
-                console.error(err);
-                window.location.reload();
-            });
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => alert("Error de cámara: " + err));
         }
 
         function onScanSuccess(decodedText) {
-            console.log("Detectado:", decodedText);
-            
-            // EL FORMATO ESPERADO: BODA-ACC...
-            if (decodedText.startsWith("BODA-") || decodedText.includes("ACC")) {
-                const parts = decodedText.split("-");
-
-                // Sonido o vibración según el cel lo permita
-                try { window.navigator.vibrate(200); } catch(e){}
-
+            // Analizar formato: BODA-ACC-ID:01-ST:Familia-C:4
+            if (decodedText.includes("BODA-ACC")) {
+                
+                // Detener la cámara para ahorrar batería y enfocar el resultado
                 html5QrCode.stop().then(() => {
                     document.getElementById('reader').classList.add('hidden');
-                    mostrarPanel(parts);
-                });
+                    
+                    // DESMEMBRAR EL TEXTO DEL QR
+                    const partes = decodedText.split("-");
+                    let nombreInvitado = "Invitado";
+                    let cantidadPases = "0";
+
+                    partes.forEach(parte => {
+                        if(parte.startsWith("ST:")) nombreInvitado = parte.replace("ST:", "").substring(0, 20);
+                        if(parte.startsWith("C:")) cantidadPases = parte.replace("C:", "");
+                    });
+
+                    // ASIGNAR AL PANEL
+                    const panel = document.getElementById('status-panel');
+                    document.getElementById('guest-name').innerText = nombreInvitado;
+                    document.getElementById('guest-paxes').innerText = cantidadPases;
+
+                    panel.classList.remove('hidden');
+                    panel.classList.add('green-ring'); // Poner el borde verde si es válido
+
+                    // Vibración del celular (Solo Android)
+                    if(navigator.vibrate) navigator.vibrate(200);
+
+                }).catch(err => console.error("Error al parar cámara: ", err));
             } else {
-                alert("Este QR no pertenece a esta invitación.");
+                alert("Código QR no válido para este evento.");
             }
         }
-
-        // Busca esta función en tu archivo entrada.html y reemplázala:
-        function mostrarPanel(arr) {
-            let nombre = "Invitado";
-            let pases = "Error";
-
-            // Recorremos los fragmentos del QR buscando datos específicos
-            arr.forEach(fragmento => {
-            if(fragmento.includes("ST:")) {
-                nombre = fragmento.replace("ST:", "").trim();
-            }
-            if(fragmento.includes("C:")) {
-                pases = fragmento.replace("C:", "").trim();
-            }
-        });
-
-        const panel = document.getElementById('status-panel');
-        panel.classList.remove('hidden');
-    
-        // Si detectamos pases, lo ponemos en verde
-        if(pases !== "Error") {
-            panel.style.borderColor = "#22c55e"; 
-        }
-
-        document.getElementById('guest-name').innerText = nombre;
-        document.getElementById('guest-paxes').innerText = pases;
-    }        
     </script>
 </body>
 </html>
